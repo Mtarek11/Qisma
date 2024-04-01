@@ -7,17 +7,18 @@ using System.Threading.Tasks;
 
 namespace ViewModels
 {
-    public class PropertyDetailsViewModelForUser
+    public class PropertyDetailsViewModelForAdmin
     {
+        public int PropertyId { get; set; }
         public string Governorate { get; set; }
-        public  string City { get; set; }
+        public string City { get; set; }
         public string Location { get; set; }
         public double UnitPrice { get; set; }
-        public string Description {  get; set; }
+        public string Description { get; set; }
         public double? MaintenanceCostPercentage { get; set; }
-        public double? MaintenanceCostNumerical {  get; set; }
+        public double? MaintenanceCostNumerical { get; set; }
         public double? TransactionFeesPercentage { get; set; }
-        public double? TransactionFeesNumerical {  get; set; }
+        public double? TransactionFeesNumerical { get; set; }
         public int NumberOfShares { get; set; }
         public int AvailableShares { get; set; }
         public int UsedShares { get; set; }
@@ -31,8 +32,8 @@ namespace ViewModels
         public double? MaintenaceInstallment { get; set; }
         public double? DeliveryInstallment { get; set; }
         public Models.Type Type { get; set; }
-        public Status Status {  get; set; }
-        public List<PropertyFacilityViewModelForUser> PropertyFacilities { get; set; } 
-        public List<string> PropertyImages { get; set; }
+        public Status Status { get; set; }
+        public List<PropertyFacilityViewModelForAdmin> PropertyFacilities { get; set; }
+        public List<PropertyImageViewModelforAdmin> PropertyImages { get; set; }
     }
 }

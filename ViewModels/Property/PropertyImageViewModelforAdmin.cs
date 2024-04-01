@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace ViewModels
 {
-    public class PropertyFacilityViewModelForUser
+    public class PropertyImageViewModelforAdmin
     {
-        public string SVG {  get; set; }
-        public string Describtion {  get; set; }
+        public int PropertyId { get; set; }
+        public string ImageUrl { get; set; }
     }
 }
- 

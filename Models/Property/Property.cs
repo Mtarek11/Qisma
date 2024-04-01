@@ -41,6 +41,7 @@ namespace Models
         // Numerical 
         public double? DeliveryInstallment {  get; set; }
         public Type Type { get; set; }
+        public Status Status {  get; set; }
         public bool IsDeleted {  get; set; }
         public virtual ICollection<PropertyFacility> PropertyFacilities { get; set; } = new List<PropertyFacility>();
         public virtual ICollection<PropertyImage> PropertyImages { get; set; } = new List<PropertyImage>();
@@ -49,5 +50,11 @@ namespace Models
     {
         Residential = 1,
         Commercial = 2
+    }
+    public enum Status
+    {
+        UnderConstruction = 1,
+        ReadyToMove = 2,
+        Rented = 3
     }
 }

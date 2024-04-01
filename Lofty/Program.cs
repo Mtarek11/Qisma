@@ -45,6 +45,7 @@ namespace WebApis
             appbuilder.Services.AddScoped(typeof(PropertyImageManager));
             appbuilder.Services.AddScoped(typeof(FacilityManager));
             appbuilder.Services.AddScoped(typeof(UnitOfWork));
+            appbuilder.Services.AddScoped(typeof(PropertyFacilityManager));
             appbuilder.Services.AddControllers(
                 con => con.Filters.Add<ExceptionFilter>()
                 ).AddNewtonsoftJson(option =>

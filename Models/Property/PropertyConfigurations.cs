@@ -21,6 +21,7 @@ namespace Models
             builder.Property(i => i.MaintenanceCost).IsRequired(false);
             builder.Property(i => i.TransactionFees).IsRequired(false);
             builder.Property(i => i.NumberOfShares).IsRequired(true);
+            builder.Property(i => i.Status).IsRequired(true);
             builder.Property(i => i.AvailableShares).HasComputedColumnSql("NumberOfShares - UsedShares");
             builder.Property(i => i.UsedShares).HasDefaultValue(0);
             builder.Property(i => i.SharePrice).IsRequired(true);

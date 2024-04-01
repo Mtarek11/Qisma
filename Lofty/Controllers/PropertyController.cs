@@ -34,7 +34,7 @@ namespace Lofty.Controllers
               [FromQuery] double? MinSharePrice = null, [FromQuery] double? MaxSharePrice = null)
         {
             if (ModelState.IsValid)
-            {
+            { 
                 PaginationViewModel<PropertyViewModelInListViewForUser> properties = await propertyManager.GetAllPropertiesForUserAsync(PageNumber, PageSize, GovernorateId, CityId, PropertyType,
                    MinUnitPrice, MaxUnitPrice, MinSharePrice, MaxSharePrice);
                 if (properties.ItemsList.Count > 0)
@@ -68,7 +68,7 @@ namespace Lofty.Controllers
             }
         }
         /// <summary>
-        /// Get property details for user by property id
+        /// Get property details for user by property id ==> Type 1- resedintial 2- commercial ==> Status 1- Under construction 2- Ready to move and rent
         /// </summary>
         /// <param name="PropertyId"></param>
         /// <returns></returns>

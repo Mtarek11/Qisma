@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -47,6 +48,10 @@ namespace ViewModels
         public double? DeliveryInstallment { get; set; } 
         [Required]
         public Models.Type Type { get; set; }
+        [Required]
+        public Status Status {  get; set; }
         public List<AddPropertyFacilityViewModel> Facilities {  get; set; }
+        [Required]
+        public IFormFileCollection PropertyImages {  get; set; }
     }
 }
