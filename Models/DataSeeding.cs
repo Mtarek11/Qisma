@@ -12,6 +12,9 @@ namespace Models
     {
         public static void DataSeed(this ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<IdentityRole>().HasData(
+               new IdentityRole { Name = "Admin", NormalizedName = "ADMIN" },
+               new IdentityRole { Name = "Customer", NormalizedName = "CUSTOMER" });
             modelBuilder.Entity<Facility>().HasData(
                new Facility { Id = 1, SVG = "furniture.svg" },
                new Facility { Id = 2, SVG = "snow-icon.svg" },
@@ -120,7 +123,7 @@ namespace Models
                 new City { Id = 57, GovernorateId = 1, NameAr = "العاصمة الإدارية", NameEn = "Capital New" },
                 new City { Id = 58, GovernorateId = 2, NameAr = "الجيزة", NameEn = "Giza" },
                 new City { Id = 59, GovernorateId = 2, NameAr = "السادس من أكتوبر", NameEn = "Sixth of October" },
-                new City { Id = 60, GovernorateId = 2, NameAr = "الشيخ زايد", NameEn = "Cheikh Zayed" },
+                new City { Id = 60, GovernorateId = 2, NameAr = "الشيخ زايد", NameEn = "Sheikh Zayed" },
                 new City { Id = 61, GovernorateId = 2, NameAr = "الحوامدية", NameEn = "Hawamdiyah" },
                 new City { Id = 62, GovernorateId = 2, NameAr = "البدرشين", NameEn = "Al Badrasheen" },
                 new City { Id = 63, GovernorateId = 2, NameAr = "الصف", NameEn = "Saf" },

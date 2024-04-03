@@ -40,6 +40,7 @@ namespace WebApis
                 i.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultEmailProvider;
             }).AddEntityFrameworkStores<LoftyContext>().AddDefaultTokenProviders();
             appbuilder.Services.AddScoped(typeof(PropertyManager));
+            appbuilder.Services.AddScoped(typeof(AccountManager));
             appbuilder.Services.AddScoped(typeof(GovernorateManager));
             appbuilder.Services.AddScoped(typeof(CityManager));
             appbuilder.Services.AddScoped(typeof(PropertyImageManager));

@@ -47,8 +47,10 @@ namespace ViewModels
         // Numerical 
         public double? DeliveryInstallment { get; set; } 
         [Required]
+        [Range(1, 2, ErrorMessage = "Invalid Type value.")]
         public Models.Type Type { get; set; }
         [Required]
+        [Range(1, 3, ErrorMessage = "Invalid Status value.")]
         public Status Status {  get; set; }
         public List<AddPropertyFacilityViewModel> Facilities {  get; set; }
         [Required]
