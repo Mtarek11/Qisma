@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ViewModels
-{
+{ 
     public class AddPropertyFacilityViewModel
     {
         public int FacilityId { get; set; }

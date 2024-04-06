@@ -14,9 +14,9 @@ namespace ViewModels
         public string Location { get; set; }
         public double UnitPrice { get; set; }
         public string Description {  get; set; }
-        public double? MaintenanceCostPercentage { get; set; }
+        public double? MaintenanceCost { get; set; }
         public double? MaintenanceCostNumerical {  get; set; }
-        public double? TransactionFeesPercentage { get; set; }
+        public double? TransactionFees { get; set; }
         public double? TransactionFeesNumerical {  get; set; }
         public int NumberOfShares { get; set; }
         public int AvailableShares { get; set; }

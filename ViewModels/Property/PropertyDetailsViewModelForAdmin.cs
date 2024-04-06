@@ -10,14 +10,16 @@ namespace ViewModels
     public class PropertyDetailsViewModelForAdmin
     {
         public int PropertyId { get; set; }
+        public int governorateId {  get; set; }
         public string Governorate { get; set; }
+        public int CityId {  get; set; } 
         public string City { get; set; }
         public string Location { get; set; }
         public double UnitPrice { get; set; }
         public string Description { get; set; }
-        public double? MaintenanceCostPercentage { get; set; }
+        public double? MaintenanceCost { get; set; }
         public double? MaintenanceCostNumerical { get; set; }
-        public double? TransactionFeesPercentage { get; set; }
+        public double? TransactionFees { get; set; }
         public double? TransactionFeesNumerical { get; set; }
         public int NumberOfShares { get; set; }
         public int AvailableShares { get; set; }
@@ -33,7 +35,7 @@ namespace ViewModels
         public double? DeliveryInstallment { get; set; }
         public Models.Type Type { get; set; }
         public Status Status { get; set; }
-        public List<PropertyFacilityViewModelForAdmin> PropertyFacilities { get; set; }
+        public List<PropertyFacilityViewModelForAdmin> Facilities { get; set; } 
         public List<PropertyImageViewModelforAdmin> PropertyImages { get; set; }
     }
-}
+} 

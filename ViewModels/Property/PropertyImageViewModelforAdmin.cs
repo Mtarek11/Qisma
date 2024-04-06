@@ -8,7 +8,7 @@ namespace ViewModels
 {
     public class PropertyImageViewModelforAdmin
     {
-        public int PropertyId { get; set; }
+        public int Id { get; set; }
         public string ImageUrl { get; set; }
     }
 }

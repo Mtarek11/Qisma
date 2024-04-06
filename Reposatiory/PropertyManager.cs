@@ -210,7 +210,7 @@ namespace Reposatiory
             {
                 query = query.Where(i => i.SharePrice <= maxSharePrice);
             }
-            List<PropertyViewModelInListViewForUser> properties = await query.Select(i => i.ToPropertyViewModelInListForUser()).Skip(itemsToSkip).Take(pageSize).ToListAsync();
+            List<PropertyViewModelInListViewForUser> properties = await query.Select(PropertyExtansions.ToPropertyViewModelInListExpression()).Skip(itemsToSkip).Take(pageSize).ToListAsync();
             if (properties.Count > 0)
             {
                 int totalItems = await query.CountAsync();
@@ -227,7 +227,7 @@ namespace Reposatiory
         }
         public async Task<PropertyDetailsViewModelForUser> GetPropertyDetailsByIdForUserAsync(int propertyId)
         {
-            PropertyDetailsViewModelForUser property = await GetAll().Where(i => i.Id == propertyId).Select(i => i.ToPropertyDetailsViewModelForUser()).FirstOrDefaultAsync();
+            PropertyDetailsViewModelForUser property = await GetAll().Where(i => i.Id == propertyId).Select(PropertyExtansions.ToExpression()).FirstOrDefaultAsync();
             return property;
         }
         public async Task<PropertyDetailsViewModelForAdmin> GetPropertyDetailsByIdForAdminAsync(int propertyId)

@@ -137,17 +137,16 @@ namespace Lofty.Controllers
         /// <summary>
         /// Add property images
         /// </summary>
-        /// <param name="Image"></param>
-        /// <param name="PropertyId"></param>
+        /// <param name="viewModel"></param>
         /// <returns></returns>
         [HttpPost("api/Dashboard/PropertyImages/Add")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<PropertyImageViewModelforAdmin>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
-        public async Task<IActionResult> AddPropertyImagesAsync([FromForm] IFormFile Image, [FromForm] int PropertyId)
+        public async Task<IActionResult> AddPropertyImagesAsync([FromForm] AddPropertyImagesViewModel viewModel)
         {
             if (ModelState.IsValid)
             {
-                APIResult<PropertyImageViewModelforAdmin> checkAddedOrNot = await propertyImageManager.AddPropertyImageAsync(Image, PropertyId);
+                APIResult<PropertyImageViewModelforAdmin> checkAddedOrNot = await propertyImageManager.AddPropertyImageAsync(viewModel);
                 return new JsonResult(checkAddedOrNot)
                 {
                     StatusCode = checkAddedOrNot.StatusCode

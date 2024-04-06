@@ -3,6 +3,7 @@ using Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -34,18 +35,18 @@ namespace ViewModels
                 CityId = viewModel.CityId
             };
         }
-        public static PropertyViewModelInListViewForUser ToPropertyViewModelInListForUser (this Models.Property property)
-        { 
-            return new PropertyViewModelInListViewForUser
+        public static Expression<Func<Models.Property, PropertyViewModelInListViewForUser>> ToPropertyViewModelInListExpression()
+        {
+            return i => new PropertyViewModelInListViewForUser
             {
-                Address = property.Location,
-                ProjectedRentalYield = property.AnnualRentalYield,
-                ProjectedAnnualReturn = property.AnnualRentalYield + property.AnnualPriceAppreciation,
-                City = property.City.NameEn,
-                ImageUrl = property.PropertyImages.Select(i => i.ImageUrl).FirstOrDefault(),
-                PropertyId = property.Id,
-                AvailableTokens = property.AvailableShares,
-                TokenPrice = property.SharePrice
+                Address = i.Location,
+                ProjectedRentalYield = i.AnnualRentalYield,
+                ProjectedAnnualReturn = i.AnnualRentalYield + i.AnnualPriceAppreciation,
+                City = i.City.NameEn,
+                ImageUrl = i.PropertyImages.Select(image => image.ImageUrl).FirstOrDefault(),
+                PropertyId = i.Id,
+                AvailableTokens = i.AvailableShares,
+                TokenPrice = i.SharePrice
             };
         }
         public static PropertyDetailsViewModelForAdmin ToPropertyDetailsViewModelForAdmin(this Models.Property property)
@@ -53,7 +54,9 @@ namespace ViewModels
             return new PropertyDetailsViewModelForAdmin
             {
                 PropertyId = property.Id,
-                TransactionFeesPercentage = property.TransactionFees,
+                CityId = property.CityId,
+                governorateId = property.GovernorateId,
+                TransactionFees = property.TransactionFees,
                 TransactionFeesNumerical = property.TransactionFees != null ? property.TransactionFees * property.UnitPrice : null,
                 Description = property.Description,
                 AnnualPriceAppreciation = property.AnnualPriceAppreciation,
@@ -65,7 +68,7 @@ namespace ViewModels
                 Governorate = property.Governorate.NameEn,
                 Location = property.Location,
                 MaintenaceInstallment = property.MaintenaceInstallment,
-                MaintenanceCostPercentage = property.MaintenanceCost,
+                MaintenanceCost = property.MaintenanceCost,
                 MaintenanceCostNumerical = property.MaintenanceCost != null ? property.MaintenanceCost * property.UnitPrice : null,
                 MonthlyInstallment = property.MonthlyInstallment,
                 ProjectedAnnualReturn = property.AnnualRentalYield + property.AnnualPriceAppreciation,
@@ -77,15 +80,16 @@ namespace ViewModels
                 UsedShares = property.UsedShares,
                 Status = property.Status,
                 PropertyImages = property.PropertyImages.Select(i => i.ToPropertyImageViewModelForAdmin()).ToList(),
-                PropertyFacilities = property.PropertyFacilities.Select(i => i.ToPropertyFacilityViewModelForAdmin()).ToList(),
+                Facilities = property.PropertyFacilities.Select(i => i.ToPropertyFacilityViewModelForAdmin()).ToList(),
             };
         }
         public static PropertyFacilityViewModelForAdmin ToPropertyFacilityViewModelForAdmin(this PropertyFacility propertyFacility)
         {
             return new PropertyFacilityViewModelForAdmin()
             {
+                FacilityId = propertyFacility.FacilityId,
                 SVG = propertyFacility.Facility.SVG,
-                Describtion = propertyFacility.Description,
+                Description = propertyFacility.Description,
                 PropertyFacilityId = propertyFacility.Id,
             };
         }
@@ -94,38 +98,38 @@ namespace ViewModels
             return new PropertyImageViewModelforAdmin()
             {
                 ImageUrl = propertyImage.ImageUrl,
-                PropertyId = propertyImage.PropertyId,
+                Id = propertyImage.Id,
             };
         }
-        public static PropertyDetailsViewModelForUser ToPropertyDetailsViewModelForUser(this Models.Property property)
+        public static Expression<Func<Models.Property, PropertyDetailsViewModelForUser>> ToExpression()
         {
-            return new PropertyDetailsViewModelForUser
+            return i => new PropertyDetailsViewModelForUser
             {
-                TransactionFeesPercentage = property.TransactionFees,
-                TransactionFeesNumerical = property.TransactionFees != null ? property.TransactionFees * property.UnitPrice : null,
-                Description = property.Description,
-                AnnualPriceAppreciation = property.AnnualPriceAppreciation,
-                AnnualRentalYield = property.AnnualRentalYield,
-                AvailableShares = property.AvailableShares,
-                City = property.City.NameEn,
-                DeliveryInstallment = property.DeliveryInstallment,
-                DownPayment = property.DownPayment,
-                Governorate = property.Governorate.NameEn,
-                Location = property.Location,
-                MaintenaceInstallment = property.MaintenaceInstallment,
-                MaintenanceCostPercentage = property.MaintenanceCost,
-                MaintenanceCostNumerical = property.MaintenanceCost != null ? property.MaintenanceCost * property.UnitPrice : null,
-                MonthlyInstallment = property.MonthlyInstallment,
-                ProjectedAnnualReturn = property.AnnualRentalYield + property.AnnualPriceAppreciation,
-                Type = property.Type,
-                NumberOfShares = property.NumberOfShares,
-                NumberOfYears = property.NumberOfYears,
-                SharePrice = property.SharePrice,
-                UnitPrice = property.UnitPrice,
-                UsedShares = property.UsedShares,
-                Status = property.Status,
-                PropertyImages = property.PropertyImages.Select(i => i.ImageUrl).ToList(),
-                PropertyFacilities = property.PropertyFacilities.Select(i => i.ToPropertyFacilityViewModelForUser()).ToList(),
+                TransactionFees = i.TransactionFees,
+                TransactionFeesNumerical = i.TransactionFees != null ? i.TransactionFees * i.UnitPrice : null,
+                Description = i.Description,
+                AnnualPriceAppreciation = i.AnnualPriceAppreciation,
+                AnnualRentalYield = i.AnnualRentalYield,
+                AvailableShares = i.AvailableShares,
+                City = i.City.NameEn,
+                DeliveryInstallment = i.DeliveryInstallment,
+                DownPayment = i.DownPayment,
+                Governorate = i.Governorate.NameEn,
+                Location = i.Location,
+                MaintenaceInstallment = i.MaintenaceInstallment,
+                MaintenanceCost = i.MaintenanceCost,
+                MaintenanceCostNumerical = i.MaintenanceCost != null ? i.MaintenanceCost * i.UnitPrice : null,
+                MonthlyInstallment = i.MonthlyInstallment,
+                ProjectedAnnualReturn = i.AnnualRentalYield + i.AnnualPriceAppreciation,
+                Type = i.Type,
+                NumberOfShares = i.NumberOfShares,
+                NumberOfYears = i.NumberOfYears,
+                SharePrice = i.SharePrice,
+                UnitPrice = i.UnitPrice,
+                UsedShares = i.UsedShares,
+                Status = i.Status,
+                PropertyImages = i.PropertyImages.Select(image => image.ImageUrl).ToList(),
+                PropertyFacilities = i.PropertyFacilities.Select(facility => facility.ToPropertyFacilityViewModelForUser()).ToList(),
             };
         }
         public static PropertyFacilityViewModelForUser ToPropertyFacilityViewModelForUser(this PropertyFacility propertyFacility)
@@ -133,7 +137,7 @@ namespace ViewModels
             return new PropertyFacilityViewModelForUser
             {
                 SVG = propertyFacility.Facility.SVG,
-                Describtion = propertyFacility.Description,
+                Description = propertyFacility.Description,
             };
         }
     }

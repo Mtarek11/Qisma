@@ -9,7 +9,7 @@ namespace ViewModels
     public class PropertyFacilityViewModelForUser
     {
         public string SVG {  get; set; }
-        public string Describtion {  get; set; }
+        public string Description {  get; set; } 
     }
 }
  

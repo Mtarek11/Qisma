@@ -48,13 +48,13 @@ namespace Reposatiory
             }
             return true;
         }
-        public async Task<APIResult<PropertyImageViewModelforAdmin>> AddPropertyImageAsync(IFormFile image, int propertyId)
+        public async Task<APIResult<PropertyImageViewModelforAdmin>> AddPropertyImageAsync(AddPropertyImagesViewModel viewModel)
         {
             APIResult<PropertyImageViewModelforAdmin> aPIResult = new();
-            string uniqueFileName = Guid.NewGuid().ToString() + "_" + image.FileName;
+            string uniqueFileName = Guid.NewGuid().ToString() + "_" + viewModel.Images[0].FileName;
             PropertyImage propertyImage = new()
             {
-                PropertyId = propertyId,
+                PropertyId = viewModel.PropertyId,
                 ImageUrl = uniqueFileName
             };
             try
@@ -65,7 +65,7 @@ namespace Reposatiory
                 Path.Combine(
                    Directory.GetCurrentDirectory(), "Content", "Images", uniqueFileName),
                 FileMode.Create);
-                await image.CopyToAsync(fileStream);
+                await viewModel.Images[0].CopyToAsync(fileStream);
                 fileStream.Position = 0;
                 fileStream.Close();
                 aPIResult.Data = propertyImage.ToPropertyImageViewModelForAdmin();

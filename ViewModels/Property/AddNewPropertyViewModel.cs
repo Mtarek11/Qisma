@@ -15,10 +15,10 @@ namespace ViewModels
         public string Location { get; set; }
         [Required]
         public int GovernorateId {  get; set; }
-        [Required]
+        [Required] 
         public int CityId {  get; set; }
         // Numerical
-        [Required]
+        [Required] 
         public double UnitPrice { get; set; }
         [Required]
         public string Description {  get; set; }
@@ -45,7 +45,7 @@ namespace ViewModels
         // Numerical
         public double? MaintenaceInstallment { get; set; }
         // Numerical 
-        public double? DeliveryInstallment { get; set; } 
+        public double? DeliveryInstallment { get; set; }  
         [Required]
         [Range(1, 2, ErrorMessage = "Invalid Type value.")]
         public Models.Type Type { get; set; }
