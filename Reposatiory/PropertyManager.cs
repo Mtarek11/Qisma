@@ -62,6 +62,12 @@ namespace Reposatiory
         public async Task<APIResult<string>> UpdatePropertyAsync(UpdatePropertyViewModel viewModel)
         {
             APIResult<string> aPIResult = new();
+            Property property = new()
+            {
+                Id = viewModel.PropertyId
+            };
+            PartialUpdate(property);
+            bool isUpdated = false;
             if (viewModel.CityId != null && viewModel.GovernorateId != null)
             {
                 bool checkCity = await cityManager.CheckCityAsync((int)viewModel.CityId, (int)viewModel.GovernorateId);
@@ -72,13 +78,13 @@ namespace Reposatiory
                     aPIResult.StatusCode = 400;
                     return aPIResult;
                 }
+                else
+                {
+                    property.CityId = (int)viewModel.CityId;
+                    property.GovernorateId = (int)viewModel.GovernorateId;
+                    isUpdated = true;
+                }
             }
-            Property property = new()
-            {
-                Id = viewModel.PropertyId
-            };
-            PartialUpdate(property);
-            bool isUpdated = false;
             if (viewModel.Location != null)
             {
                 property.Location = viewModel.Location;
@@ -147,6 +153,16 @@ namespace Reposatiory
             if (viewModel.Status != null)
             {
                 property.Status = (Status)viewModel.Status;
+                isUpdated = true;
+            }
+            if (viewModel.NumberOfYears != null)
+            {
+                property.NumberOfYears = viewModel.NumberOfYears;
+                isUpdated = true;
+            }
+            if (viewModel.MaintenaceInstallment != null)
+            {
+                property.MaintenaceInstallment = viewModel.MaintenaceInstallment;
                 isUpdated = true;
             }
             if (isUpdated)

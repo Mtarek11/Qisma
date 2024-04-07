@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using Models;
 using System;
 using System.Collections.Generic;
@@ -25,7 +26,15 @@ namespace Reposatiory
             {
                 await AddAsync(propertyFacility);
                 await unitOfWork.CommitAsync();
-                aPIResult.Data = propertyFacility.ToPropertyFacilityViewModelForAdmin();
+                PropertyFacilityViewModelForAdmin propertyFacilityForAdmin = await GetAll()
+                    .Where(i => i.Id == propertyFacility.Id).Select(i => new PropertyFacilityViewModelForAdmin()
+                    {
+                        FacilityId = i.FacilityId,
+                        SVG = i.Facility.SVG,
+                        Description = i.Description,
+                        PropertyFacilityId = i.Id,
+                    }).FirstOrDefaultAsync();
+                aPIResult.Data = propertyFacilityForAdmin; 
                 aPIResult.Message = "Facility added";
                 aPIResult.IsSucceed = true;
                 aPIResult.StatusCode = 200;

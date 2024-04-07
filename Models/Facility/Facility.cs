@@ -9,7 +9,7 @@ namespace Models
     public class Facility
     {
         public int Id {  get; set; }
-        public string SVG { get; set; }
+        public string SVG { get; set; } 
         public virtual ICollection<PropertyFacility> PropertyFacilities { get; set; }
     }
 }

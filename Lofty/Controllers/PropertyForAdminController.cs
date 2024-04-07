@@ -112,7 +112,7 @@ namespace Lofty.Controllers
         [HttpPost("api/Dashboard/Facility/Add")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
-        public async Task<IActionResult> AddNewFacilityAsync([FromForm, Required] IFormFile SVG)
+        public async Task<IActionResult> AddNewFacilityAsync([FromForm, Required] FileViewModel SVG)
         {
             if (ModelState.IsValid)
             {

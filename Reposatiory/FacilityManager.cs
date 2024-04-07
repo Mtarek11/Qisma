@@ -14,9 +14,9 @@ namespace Reposatiory
     public class FacilityManager(LoftyContext _mydB, UnitOfWork _unitOfWork) : MainManager<Facility>(_mydB)
     {
         private readonly UnitOfWork unitOfWork = _unitOfWork;
-        public async Task AddNewFacilityAsync(IFormFile SVG)
+        public async Task AddNewFacilityAsync(FileViewModel SVG)
         {
-            string uniqueFileName = Guid.NewGuid().ToString() + "_" + SVG.FileName;
+            string uniqueFileName = Guid.NewGuid().ToString() + "_" + SVG.File.FileName;
             Facility facility = new()
             {
                 SVG = uniqueFileName,
@@ -27,7 +27,7 @@ namespace Reposatiory
             Path.Combine(
                Directory.GetCurrentDirectory(), "Content", "Facilities", uniqueFileName),
             FileMode.Create);
-            await SVG.CopyToAsync(fileStream);
+            await SVG.File.CopyToAsync(fileStream);
             fileStream.Position = 0;
             fileStream.Close();
         }
