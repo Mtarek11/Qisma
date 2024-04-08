@@ -76,7 +76,10 @@ namespace Reposatiory
                 UserDataViewModel userData = new()
                 {
                     Token = new JwtSecurityTokenHandler().WriteToken(securityToken),
-                    Role = "Customer",
+                    Roles = new List<string>
+                    {
+                        "Customer"
+                    }
                 };
                 aPIResult.Data = userData;
                 aPIResult.IsSucceed = true;
@@ -93,6 +96,68 @@ namespace Reposatiory
                     message.Contains("IdentityNumber") ? "Identity number already used befor" : message;
                 aPIResult.StatusCode = 400;
                 return aPIResult;
+            }
+        }
+        public async Task<APIResult<UserDataViewModel>> SignInAsync(UserSignInViewModel viewModel)
+        {
+            APIResult<UserDataViewModel> APIResult = new();
+            User user = await userManager.FindByEmailAsync(viewModel.Email);
+            if (user != null)
+            {
+                APIResult<UserDataViewModel> aPIResult = await CheckPasswordAsync(user, viewModel.Password);
+                return aPIResult;
+            }
+            else
+            {
+                APIResult.IsSucceed = false;
+                APIResult.Message = "User not exist";
+                APIResult.StatusCode = 401;
+                return APIResult;
+            }
+        }
+        public async Task<APIResult<UserDataViewModel>> CheckPasswordAsync(User user, string password)
+        {
+            APIResult<UserDataViewModel> APIResult = new();
+            List<Claim> claims = new();
+            bool checkPassword = await userManager.CheckPasswordAsync(user, password);
+            if (checkPassword)
+            {
+                claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id));
+                IList<string> roles = await userManager.GetRolesAsync(user);
+                if (roles.Count > 0)
+                {
+                    foreach (var role in roles)
+                    {
+                        claims.Add(new Claim(ClaimTypes.Role, role));
+                    }
+                }
+                JwtSecurityToken securityToken = new JwtSecurityToken(
+                    claims: claims,
+                    signingCredentials: new SigningCredentials(
+                        key: new SymmetricSecurityKey(
+                            Encoding.ASCII.GetBytes(this.configuration["JWT:Key"])
+                            ),
+                        algorithm: SecurityAlgorithms.HmacSha384
+                        ),
+                    expires: DateTime.Now.AddMonths(12)
+                    );
+                UserDataViewModel userDataViewModel = new()
+                {
+                    Token = new JwtSecurityTokenHandler().WriteToken(securityToken),
+                    Roles = roles.ToList()
+                };
+                APIResult.Data = userDataViewModel;
+                APIResult.Message = "Welcome back!";
+                APIResult.StatusCode = 200;
+                APIResult.IsSucceed = true;
+                return APIResult;
+            }
+            else
+            {
+                APIResult.Message = "Wrong password";
+                APIResult.IsSucceed = false;
+                APIResult.StatusCode = 401;
+                return APIResult;
             }
         }
     }

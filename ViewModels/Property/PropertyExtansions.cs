@@ -55,7 +55,6 @@ namespace ViewModels
             {
                 PropertyId = property.Id,
                 CityId = property.CityId,
-                governorateId = property.GovernorateId,
                 TransactionFees = property.TransactionFees,
                 TransactionFeesNumerical = property.TransactionFees != null ? property.TransactionFees * property.UnitPrice : null,
                 Description = property.Description,
@@ -79,6 +78,8 @@ namespace ViewModels
                 UnitPrice = property.UnitPrice,
                 UsedShares = property.UsedShares,
                 Status = property.Status,
+                IsDeleted = property.IsDeleted,
+                GovernorateId = property.GovernorateId,
                 PropertyImages = property.PropertyImages.Select(i => i.ToPropertyImageViewModelForAdmin()).ToList(),
                 Facilities = property.PropertyFacilities.Select(i => i.ToPropertyFacilityViewModelForAdmin()).ToList(),
             };

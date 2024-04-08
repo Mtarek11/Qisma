@@ -250,7 +250,7 @@ namespace Reposatiory
         {
             PropertyDetailsViewModelForAdmin property = await GetAll().Where(i => i.Id == propertyId).Select(i => i.ToPropertyDetailsViewModelForAdmin()).FirstOrDefaultAsync();
             return property;
-        }
+        } 
         public async Task<APIResult<string>> DeletePropertyAsync(int propertyId)
         {
             APIResult<string> aPIResult = new();

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Reposatiory;
 using ViewModels;
 
@@ -36,6 +37,34 @@ namespace Lofty.Controllers
                     Message = string.Join("; ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage)),
                     IsSucceed = false,
                     StatusCode = 400
+                });
+            }
+        }
+        /// <summary>
+        /// Sign in 
+        /// </summary>
+        /// <param name="viewModel"></param>
+        /// <returns></returns>
+        [HttpPost("api/SignIn")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<UserDataViewModel>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(APIResult<UserDataViewModel>))]
+        public async Task<IActionResult> SignInForUserAsync([FromForm] UserSignInViewModel viewModel)
+        {
+            if (ModelState.IsValid)
+            {
+                APIResult<UserDataViewModel> result = await accountManager.SignInAsync(viewModel);
+                return new JsonResult(result)
+                {
+                    StatusCode = result.StatusCode
+                };
+            }
+            else
+            {
+                return Unauthorized(new APIResult<UserDataViewModel>()
+                {
+                    Message = string.Join("; ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage)),
+                    IsSucceed = false,
+                    StatusCode = 401
                 });
             }
         }
