@@ -20,7 +20,7 @@ namespace ViewModels
                 Email = viewModel.Email,
                 UserName = viewModel.Email,
                 FirstName = viewModel.FirstName,
-                InvestoreType = viewModel.InvestoreType,
+                InvestoreType = viewModel.InvestorType,
                 LastName = viewModel.LastName,
                 MiddleName = viewModel.MiddleName,
                 Occupation = viewModel.Occupation,

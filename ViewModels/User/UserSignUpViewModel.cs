@@ -21,7 +21,7 @@ namespace ViewModels
         [UserNameLength(ErrorMessage = "Last name must be at least 3 character.")]
         public string LastName { get; set; }
         [Required]
-        [PhoneNumberValidation]
+        [Phone]
         public string PhoneNumber { get; set; }
         [Required]
         [EmailAddress]
@@ -43,7 +43,7 @@ namespace ViewModels
         public bool ReciveEmails { get; set; }
         [Required]
         [Range(1, 2, ErrorMessage = "Invalid InvestoreType value.")]
-        public InvestoreType InvestoreType { get; set; }
+        public InvestorType InvestorType { get; set; }
         [Required]
         [PasswordStructureValidation]
         public string Password { get; set; }

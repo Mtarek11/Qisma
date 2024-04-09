@@ -19,9 +19,9 @@ namespace Models
         public string Occupation {  get; set; }
         public string CompanyName {  get; set; }
         public bool ReciveEmails { get; set; }
-        public InvestoreType InvestoreType {  get; set; }
+        public InvestorType InvestoreType {  get; set; }
     }
-    public enum InvestoreType
+    public enum InvestorType
     {
         Retail = 1,
         Institutional = 2
