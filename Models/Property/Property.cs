@@ -23,6 +23,7 @@ namespace Models
         // Numerical and Percentage
         public double? TransactionFees { get; set; }
         public int NumberOfShares { get; set; }
+        public int MinOfShares { get; set; }
         public int AvailableShares { get; set; }
         public int UsedShares { get; set; }
         // Numerical
@@ -43,8 +44,11 @@ namespace Models
         public Type Type { get; set; }
         public Status Status {  get; set; }
         public bool IsDeleted {  get; set; }
+        public DateTime LastModificationDate {  get; set; }
         public virtual ICollection<PropertyFacility> PropertyFacilities { get; set; } = new List<PropertyFacility>();
         public virtual ICollection<PropertyImage> PropertyImages { get; set; } = new List<PropertyImage>();
+        public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+        public virtual ICollection<BuyTracker> BuyTrackers {  get; set; }
     }
     public enum Type
     {

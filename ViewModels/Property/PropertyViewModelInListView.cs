@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ViewModels
 {
-    public class PropertyViewModelInListViewForUser
+    public class PropertyViewModelInListView
     {
         public int PropertyId { get; set; }
         public string ImageUrl { get; set; }
@@ -16,5 +16,6 @@ namespace ViewModels
         public double ProjectedRentalYield { get; set; }
         public double TokenPrice {  get; set; }
         public int AvailableTokens { get; set; }
+        public bool? IsDeleted {  get; set; }
     }
 }

@@ -22,14 +22,14 @@ namespace Reposatiory
             APIResult<int> aPIResult = new APIResult<int>();
             bool checkCity = await cityManager.CheckCityAsync(viewModel.CityId, viewModel.GovernorateId);
             if (!checkCity)
-            {
+            { 
                 aPIResult.Message = "City must be inside the governorate";
                 aPIResult.IsSucceed = false;
                 aPIResult.StatusCode = 400;
                 return aPIResult;
             }
             Property property = viewModel.ToPropertyModel();
-            if (viewModel.Facilities != null)
+            if (viewModel.Facilities != null) 
             {
                 foreach (AddPropertyFacilityViewModel facility in viewModel.Facilities)
                 {
@@ -65,7 +65,7 @@ namespace Reposatiory
             Property property = new()
             {
                 Id = viewModel.PropertyId
-            };
+            }; 
             PartialUpdate(property);
             bool isUpdated = false;
             if (viewModel.CityId != null && viewModel.GovernorateId != null)
@@ -113,6 +113,11 @@ namespace Reposatiory
             if (viewModel.NumberOfShares != null)
             {
                 property.NumberOfShares = (int)viewModel.NumberOfShares;
+                isUpdated = true;
+            }
+            if (viewModel.MinNumberOfShares != null)
+            {
+                property.MinOfShares = (int)viewModel.MinNumberOfShares;
                 isUpdated = true;
             }
             if (viewModel.SharePrice != null)
@@ -167,6 +172,7 @@ namespace Reposatiory
             }
             if (isUpdated)
             {
+                property.LastModificationDate = DateTime.Now;
                 try
                 {
                     await unitOfWork.CommitAsync();
@@ -191,13 +197,21 @@ namespace Reposatiory
                 return aPIResult;
             }
         }
-        public async Task<PaginationViewModel<PropertyViewModelInListViewForUser>> GetAllPropertiesForUserAsync(int pageNumber, int pageSize, int? governorateId, int? cityId,
-            Models.Type? propertyType, double? minUnitPrice, double? maxUnitPrice, double? minSharePrice, double? maxSharePrice)
+        public async Task<PaginationViewModel<PropertyViewModelInListView>> GetAllPropertiesForUserAsync(int pageNumber, int pageSize, int? governorateId, int? cityId,
+            Models.Type? propertyType, double? minUnitPrice, double? maxUnitPrice, double? minSharePrice, double? maxSharePrice, bool isAdmin)
         {
             int itemsToSkip = pageNumber * pageSize;
             int totalPageNumbers = 0; 
             int totalItemsNumber = 0;
-            IQueryable<Property> query = GetAll().Where(i => !i.IsDeleted);
+            IQueryable<Property> query;
+            if (isAdmin)
+            {
+                query = GetAll();
+            }
+            else
+            {
+                query = GetAll().Where(i => !i.IsDeleted);
+            }
             if (governorateId != null) 
             {
                 query = query.Where(i => i.GovernorateId == governorateId);
@@ -226,14 +240,14 @@ namespace Reposatiory
             {
                 query = query.Where(i => i.SharePrice <= maxSharePrice);
             }
-            List<PropertyViewModelInListViewForUser> properties = await query.Select(PropertyExtansions.ToPropertyViewModelInListExpression()).Skip(itemsToSkip).Take(pageSize).ToListAsync();
+            List<PropertyViewModelInListView> properties = await query.Select(PropertyExtansions.ToPropertyViewModelInListExpression(isAdmin)).Skip(itemsToSkip).Take(pageSize).ToListAsync();
             if (properties.Count > 0)
-            {
+            { 
                 int totalItems = await query.CountAsync();
                 totalItemsNumber = totalItems;
                 totalPageNumbers = (int)Math.Ceiling((double)totalItems / 10);
             }
-            PaginationViewModel<PropertyViewModelInListViewForUser> paginationViewModel = new()
+            PaginationViewModel<PropertyViewModelInListView> paginationViewModel = new()
             {
                 ItemsList = properties,
                 TotalPageNumbers = totalPageNumbers,
@@ -243,46 +257,52 @@ namespace Reposatiory
         }
         public async Task<PropertyDetailsViewModelForUser> GetPropertyDetailsByIdForUserAsync(int propertyId)
         {
-            PropertyDetailsViewModelForUser property = await GetAll().Where(i => i.Id == propertyId).Select(PropertyExtansions.ToExpression()).FirstOrDefaultAsync();
+            PropertyDetailsViewModelForUser property = await GetAll().Where(i => i.Id == propertyId).Select(PropertyExtansions.ToPropertyDetailsViewModelForUserExpression()).FirstOrDefaultAsync();
             return property;
-        }
+        }   
         public async Task<PropertyDetailsViewModelForAdmin> GetPropertyDetailsByIdForAdminAsync(int propertyId)
         {
-            PropertyDetailsViewModelForAdmin property = await GetAll().Where(i => i.Id == propertyId).Select(i => i.ToPropertyDetailsViewModelForAdmin()).FirstOrDefaultAsync();
+            PropertyDetailsViewModelForAdmin property = await GetAll().Where(i => i.Id == propertyId).Select(PropertyExtansions.ToPropertyDetailsViewModelForAdminExpression()).FirstOrDefaultAsync();
             return property;
-        } 
+        }  
         public async Task<APIResult<string>> DeletePropertyAsync(int propertyId)
         {
             APIResult<string> aPIResult = new();
-            List<string> propertyImages = await propertyImageManager.GetPropertyImagesUrlsAsync(propertyId);
-            Property property = new()
+            Property property = await GetAll().Where(i => i.Id == propertyId).Select(i => new Property()
             {
-                Id = propertyId
-            };
-            try
+                Id = i.Id,
+                IsDeleted = i.IsDeleted
+            }).FirstOrDefaultAsync();
+            if (property != null)
             {
-                Remove(property);
-                await unitOfWork.CommitAsync();
+                if (property.IsDeleted)
+                {
+                    property.IsDeleted = false;
+                    Update(property);
+                    await unitOfWork.CommitAsync();
+                    aPIResult.IsSucceed = true;
+                    aPIResult.StatusCode = 200;
+                    aPIResult.Message = "Property enabled";
+                    return aPIResult;
+                }
+                else
+                {
+                    property.IsDeleted = false;
+                    Update(property);
+                    await unitOfWork.CommitAsync();
+                    aPIResult.IsSucceed = false;
+                    aPIResult.StatusCode = 200;
+                    aPIResult.Message = "Property disabled";
+                    return aPIResult;
+                }
             }
-            catch (DbUpdateException)
+            else
             {
                 aPIResult.IsSucceed = false;
                 aPIResult.StatusCode = 400;
                 aPIResult.Message = "Property not found";
                 return aPIResult;
             }
-            foreach(string image in propertyImages)
-            {
-                string filePath = Path.Combine(Directory.GetCurrentDirectory(), "Content", "Images", image);
-                if (File.Exists(filePath))
-                {
-                    File.Delete(filePath);
-                }
-            }
-            aPIResult.IsSucceed = true;
-            aPIResult.StatusCode = 200;
-            aPIResult.Message = "Property deleted";
-            return aPIResult;
         }
     }
 }

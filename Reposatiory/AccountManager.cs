@@ -79,7 +79,8 @@ namespace Reposatiory
                     Roles = new List<string>
                     {
                         "Customer"
-                    }
+                    },
+                    Name = user.FirstName + " " + user.LastName,
                 };
                 aPIResult.Data = userData;
                 aPIResult.IsSucceed = true;
@@ -144,7 +145,8 @@ namespace Reposatiory
                 UserDataViewModel userDataViewModel = new()
                 {
                     Token = new JwtSecurityTokenHandler().WriteToken(securityToken),
-                    Roles = roles.ToList()
+                    Roles = roles.ToList(),
+                    Name = user.FirstName + " " + user.LastName,
                 };
                 APIResult.Data = userDataViewModel;
                 APIResult.Message = "Welcome back!";

@@ -17,6 +17,7 @@ namespace Models
         public DbSet<PropertyImage> PropertyImages { get; set; }
         public DbSet<Governorate> Governorates { get; set; }
         public DbSet<City> Cities {  get; set; }
+        public DbSet<BuyTracker> BuyTrackers {  get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfiguration(new FacilityConfigurations());
@@ -26,6 +27,7 @@ namespace Models
             modelBuilder.ApplyConfiguration(new UserConfigurations());
             modelBuilder.ApplyConfiguration(new GovernorateConfigurations());
             modelBuilder.ApplyConfiguration(new CityConfigurations());
+            modelBuilder.ApplyConfiguration(new BuyTrackerConfigurations());
             modelBuilder.DataSeed();
             base.OnModelCreating(modelBuilder);
         }

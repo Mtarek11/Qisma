@@ -17,6 +17,7 @@ namespace Models
             builder.Property(i => i.Id).ValueGeneratedOnAdd();
             builder.Property(i => i.ImageUrl).IsRequired(true);
             builder.HasOne(i => i.Property).WithMany(i => i.PropertyImages).HasForeignKey(i => i.PropertyId).OnDelete(DeleteBehavior.Cascade).IsRequired(true);
+            builder.HasIndex(i => i.PropertyId);
         }
     }
 }

@@ -1,7 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Models;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Reposatiory;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using ViewModels;
 
 namespace Lofty.Controllers
@@ -27,19 +31,38 @@ namespace Lofty.Controllers
         /// <param name="MaxSharePrice"></param>
         /// <returns></returns>
         [HttpGet("api/Property/GetAll")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<PaginationViewModel<PropertyViewModelInListViewForUser>>))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<PaginationViewModel<PropertyViewModelInListView>>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
         public async Task<IActionResult> GetAllPropertiesForUserAsync([FromQuery, Required] int PageNumber = 0, [FromQuery, Required] int PageSize = 10, [FromQuery] int? GovernorateId = null,
            [FromQuery] int? CityId = null, [FromQuery] Models.Type? PropertyType = null, [FromQuery] double? MinUnitPrice = null, [FromQuery] double? MaxUnitPrice = null,
               [FromQuery] double? MinSharePrice = null, [FromQuery] double? MaxSharePrice = null)
-        {
+        { 
             if (ModelState.IsValid)
-            { 
-                PaginationViewModel<PropertyViewModelInListViewForUser> properties = await propertyManager.GetAllPropertiesForUserAsync(PageNumber, PageSize, GovernorateId, CityId, PropertyType,
-                   MinUnitPrice, MaxUnitPrice, MinSharePrice, MaxSharePrice);
+            {
+                bool isAdmin = false;
+                if (User != null)
+                {
+                    if (User.Identity.IsAuthenticated)
+                    {
+                        ClaimsIdentity claimsIdentity = User.Identity as ClaimsIdentity;
+                        if (claimsIdentity?.Claims != null)
+                        {
+                            IEnumerable<string> roles = claimsIdentity.FindAll(ClaimTypes.Role).Select(c => c.Value);
+                            foreach (var role in roles)
+                            {
+                                if (role == "Admin")
+                                {
+                                    isAdmin = true;
+                                }
+                            }
+                        }
+                    }
+                }
+                PaginationViewModel<PropertyViewModelInListView> properties = await propertyManager.GetAllPropertiesForUserAsync(PageNumber, PageSize, GovernorateId, CityId, PropertyType,
+                   MinUnitPrice, MaxUnitPrice, MinSharePrice, MaxSharePrice, isAdmin);
                 if (properties.ItemsList.Count > 0)
                 {
-                    return Ok(new APIResult<PaginationViewModel<PropertyViewModelInListViewForUser>>()
+                    return Ok(new APIResult<PaginationViewModel<PropertyViewModelInListView>>()
                     {
                         Data = properties,
                         IsSucceed = true,

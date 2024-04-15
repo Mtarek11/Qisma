@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc;
 using ViewModels;
+using Microsoft.AspNetCore.Http;
 
 namespace WebApis.Filters
 {

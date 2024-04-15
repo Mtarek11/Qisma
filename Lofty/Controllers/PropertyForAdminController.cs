@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Reposatiory;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Threading.Tasks;
 using ViewModels;
 
 namespace Lofty.Controllers
@@ -14,6 +17,7 @@ namespace Lofty.Controllers
     /// <param name="_facilityManager"></param>
     /// <param name="_propertyImageManager"></param>
     /// <param name="_propertyFacilityManager"></param>
+    [Authorize(Roles = "Admin")]
     public class PropertyForAdminController(PropertyManager _propertyManager, FacilityManager _facilityManager, PropertyImageManager _propertyImageManager,
         PropertyFacilityManager _propertyFacilityManager) : ControllerBase
     {
@@ -423,7 +427,7 @@ namespace Lofty.Controllers
         /// </summary>
         /// <param name="PropertyId"></param>
         /// <returns></returns>
-        [HttpDelete("api/Dashboard/Property/Delete")]
+        [HttpPut("api/Dashboard/Property/EnableAndDisable")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
         public async Task<IActionResult> DeletePropertyAsync([FromQuery, Required] int PropertyId)

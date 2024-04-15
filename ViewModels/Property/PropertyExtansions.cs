@@ -14,7 +14,7 @@ namespace ViewModels
         public static Models.Property ToPropertyModel (this AddNewPropertyViewModel viewModel)
         {
             return new Models.Property
-            {
+            { 
                 Location = viewModel.Location,
                 UnitPrice = viewModel.UnitPrice,
                 Description = viewModel.Description,
@@ -28,16 +28,18 @@ namespace ViewModels
                 DownPayment = viewModel.DownPayment,
                 MonthlyInstallment = viewModel.MonthlyInstallment,
                 NumberOfYears = viewModel.NumberOfYears,
+                MinOfShares = viewModel.MinNumberOfShares,
                 DeliveryInstallment = viewModel.DeliveryInstallment,
                 Type = viewModel.Type,
                 GovernorateId = viewModel.GovernorateId,
                 Status = viewModel.Status,
-                CityId = viewModel.CityId
+                CityId = viewModel.CityId,
+                LastModificationDate = DateTime.Now
             };
         }
-        public static Expression<Func<Models.Property, PropertyViewModelInListViewForUser>> ToPropertyViewModelInListExpression()
+        public static Expression<Func<Models.Property, PropertyViewModelInListView>> ToPropertyViewModelInListExpression(bool isAdmin)
         {
-            return i => new PropertyViewModelInListViewForUser
+            return i => new PropertyViewModelInListView
             {
                 Address = i.Location,
                 ProjectedRentalYield = i.AnnualRentalYield,
@@ -46,15 +48,16 @@ namespace ViewModels
                 ImageUrl = i.PropertyImages.Select(image => image.ImageUrl).FirstOrDefault(),
                 PropertyId = i.Id,
                 AvailableTokens = i.AvailableShares,
-                TokenPrice = i.SharePrice
+                TokenPrice = i.SharePrice,
+                IsDeleted = isAdmin ? i.IsDeleted : null,
             };
         }
-        public static PropertyDetailsViewModelForAdmin ToPropertyDetailsViewModelForAdmin(this Models.Property property)
+        public static Expression<Func<Models.Property, PropertyDetailsViewModelForAdmin>> ToPropertyDetailsViewModelForAdminExpression()
         {
-            return new PropertyDetailsViewModelForAdmin
+            return property => new PropertyDetailsViewModelForAdmin
             {
                 PropertyId = property.Id,
-                CityId = property.CityId,
+                CityId = property.CityId, 
                 TransactionFees = property.TransactionFees,
                 TransactionFeesNumerical = property.TransactionFees != null ? property.TransactionFees * property.UnitPrice : null,
                 Description = property.Description,
@@ -73,6 +76,7 @@ namespace ViewModels
                 ProjectedAnnualReturn = property.AnnualRentalYield + property.AnnualPriceAppreciation,
                 Type = property.Type,
                 NumberOfShares = property.NumberOfShares,
+                MinNumberOfShares = property.MinOfShares,
                 NumberOfYears = property.NumberOfYears,
                 SharePrice = property.SharePrice,
                 UnitPrice = property.UnitPrice,
@@ -80,29 +84,21 @@ namespace ViewModels
                 Status = property.Status,
                 IsDeleted = property.IsDeleted,
                 GovernorateId = property.GovernorateId,
-                PropertyImages = property.PropertyImages.Select(i => i.ToPropertyImageViewModelForAdmin()).ToList(),
-                Facilities = property.PropertyFacilities.Select(i => i.ToPropertyFacilityViewModelForAdmin()).ToList(),
+                PropertyImages = property.PropertyImages.Select(propertyImage => new PropertyImageViewModelforAdmin()
+                {
+                    ImageUrl = propertyImage.ImageUrl,
+                    Id = propertyImage.Id,
+                }).ToList(),
+                Facilities = property.PropertyFacilities.Select(propertyFacility => new PropertyFacilityViewModelForAdmin()
+                {
+                    FacilityId = propertyFacility.FacilityId,
+                    SVG = propertyFacility.Facility.SVG,
+                    Description = propertyFacility.Description,
+                    PropertyFacilityId = propertyFacility.Id,
+                }).ToList(),
             };
         }
-        public static PropertyFacilityViewModelForAdmin ToPropertyFacilityViewModelForAdmin(this PropertyFacility propertyFacility)
-        {
-            return new PropertyFacilityViewModelForAdmin()
-            {
-                FacilityId = propertyFacility.FacilityId,
-                SVG = propertyFacility.Facility.SVG,
-                Description = propertyFacility.Description,
-                PropertyFacilityId = propertyFacility.Id,
-            };
-        }
-        public static PropertyImageViewModelforAdmin ToPropertyImageViewModelForAdmin(this PropertyImage propertyImage)
-        {
-            return new PropertyImageViewModelforAdmin()
-            {
-                ImageUrl = propertyImage.ImageUrl,
-                Id = propertyImage.Id,
-            };
-        }
-        public static Expression<Func<Models.Property, PropertyDetailsViewModelForUser>> ToExpression()
+        public static Expression<Func<Models.Property, PropertyDetailsViewModelForUser>> ToPropertyDetailsViewModelForUserExpression()
         {
             return i => new PropertyDetailsViewModelForUser
             {
@@ -124,21 +120,26 @@ namespace ViewModels
                 ProjectedAnnualReturn = i.AnnualRentalYield + i.AnnualPriceAppreciation,
                 Type = i.Type,
                 NumberOfShares = i.NumberOfShares,
+                MinNumberOfShares = i.MinOfShares,
                 NumberOfYears = i.NumberOfYears,
                 SharePrice = i.SharePrice,
                 UnitPrice = i.UnitPrice,
                 UsedShares = i.UsedShares,
                 Status = i.Status,
                 PropertyImages = i.PropertyImages.Select(image => image.ImageUrl).ToList(),
-                PropertyFacilities = i.PropertyFacilities.Select(facility => facility.ToPropertyFacilityViewModelForUser()).ToList(),
+                PropertyFacilities = i.PropertyFacilities.Select(propertyFacility => new PropertyFacilityViewModelForUser()
+                {
+                    SVG = propertyFacility.Facility.SVG,
+                    Description = propertyFacility.Description,
+                }).ToList(),
             };
         }
-        public static PropertyFacilityViewModelForUser ToPropertyFacilityViewModelForUser(this PropertyFacility propertyFacility)
+        public static PropertyImageViewModelforAdmin ToPropertyImageViewModelForAdmin(this PropertyImage propertyImage)
         {
-            return new PropertyFacilityViewModelForUser
+            return new PropertyImageViewModelforAdmin()
             {
-                SVG = propertyFacility.Facility.SVG,
-                Description = propertyFacility.Description,
+                ImageUrl = propertyImage.ImageUrl,
+                Id = propertyImage.Id,
             };
         }
     }

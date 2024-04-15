@@ -33,7 +33,9 @@ namespace Models
             builder.Property(i => i.MaintenaceInstallment).IsRequired(false);
             builder.Property(i => i.DeliveryInstallment).IsRequired(false);
             builder.Property(i => i.Type).IsRequired(true);
+            builder.Property(i => i.MinOfShares).IsRequired(true);
             builder.Property(i => i.IsDeleted).HasDefaultValue(false);
+            builder.Property(i => i.LastModificationDate).IsRequired(true);
             builder.HasIndex(i => i.Location);
             builder.HasIndex(i => i.UnitPrice);
             builder.HasIndex(i => i.Type);
@@ -49,6 +51,8 @@ namespace Models
             builder.HasIndex(i => new { i.UnitPrice, i.SharePrice });
             builder.HasIndex(i => new { i.Type, i.SharePrice });
             builder.HasIndex(i => new { i.Location, i.UnitPrice, i.Type, i.SharePrice });
+            builder.HasIndex(i => i.IsDeleted);
+            builder.HasIndex(i => new { i.Id, i.IsDeleted });
             builder.HasOne(i => i.Governorate).WithMany(i => i.Properties).HasForeignKey(i => i.GovernorateId).OnDelete(DeleteBehavior.NoAction).IsRequired(true);
             builder.HasOne(i => i.City).WithMany(i => i.Properties).HasForeignKey(i => i.CityId).OnDelete(DeleteBehavior.Cascade).IsRequired(true);
         }

@@ -24,6 +24,7 @@ namespace ViewModels
         // Numerical and percentage
         public double? TransactionFees { get; set; }
         public int? NumberOfShares { get; set; }
+        public int? MinNumberOfShares {  get; set; }
         // Numerical
         public double? SharePrice { get; set; }
         // Percentage

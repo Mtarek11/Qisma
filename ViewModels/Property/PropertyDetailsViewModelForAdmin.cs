@@ -22,6 +22,7 @@ namespace ViewModels
         public double? TransactionFees { get; set; }
         public double? TransactionFeesNumerical { get; set; }
         public int NumberOfShares { get; set; }
+        public int MinNumberOfShares {  get; set; }
         public int AvailableShares { get; set; }
         public int UsedShares { get; set; }
         public double SharePrice { get; set; }

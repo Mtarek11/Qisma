@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Reposatiory;
+using System.Linq;
+using System.Threading.Tasks;
 using ViewModels;
 
 namespace Lofty.Controllers

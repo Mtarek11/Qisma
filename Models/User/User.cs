@@ -20,6 +20,7 @@ namespace Models
         public string CompanyName {  get; set; }
         public bool ReciveEmails { get; set; }
         public InvestorType InvestoreType {  get; set; }
+        public virtual ICollection<BuyTracker> BuyTrackers {  get; set; }
     }
     public enum InvestorType
     {

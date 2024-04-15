@@ -14,11 +14,6 @@ namespace Reposatiory
     public class PropertyImageManager(LoftyContext _mydB, UnitOfWork _unitOfWork) : MainManager<PropertyImage>(_mydB)
     {
         private readonly UnitOfWork unitOfWork = _unitOfWork;
-        public async Task<List<string>> GetPropertyImagesUrlsAsync(int propertyId)
-        {
-            List<string> propertyImages = await GetAll().Where(i => i.PropertyId == propertyId).Select(i => i.ImageUrl).ToListAsync();
-            return propertyImages;
-        }
         public async Task<bool> AddPropertyImagesAsync(AddPropertyImagesViewModel viewModel)
         {
             foreach (IFormFile formFile in viewModel.Images)
