@@ -9,8 +9,9 @@ namespace ViewModels
 {
     public class PropertyDetailsViewModelForUser
     {
+        public string PropertyId { get; set; }
         public string Governorate { get; set; }
-        public  string City { get; set; }
+        public string City { get; set; }
         public string Location { get; set; }
         public double UnitPrice { get; set; }
         public string Description {  get; set; }

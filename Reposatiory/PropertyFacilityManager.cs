@@ -44,7 +44,7 @@ namespace Reposatiory
             {
                 aPIResult.Message = ex.InnerException.Message.Contains("FacilityId") ? "Facility not found" : "Property not found";
                 aPIResult.IsSucceed = false;
-                aPIResult.StatusCode = 400;
+                aPIResult.StatusCode = 404;
                 return aPIResult;
             }
         }

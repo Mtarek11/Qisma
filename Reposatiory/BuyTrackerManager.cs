@@ -16,7 +16,7 @@ namespace Reposatiory
         private readonly PropertyManager propertyManager = _propertyManager;
         private readonly AccountManager accountManager = _accountManager;
         private readonly UnitOfWork unitOfWork = _unitOfWork;   
-        public async Task<APIResult<string>> ProceedWithBuyAsync(string userId, int propertyId)
+        public async Task<APIResult<string>> ProceedWithBuyAsync(string userId, string propertyId)
         {
             APIResult<string> aPIResult = new();
             bool checkUser = await accountManager.GetAll().AnyAsync(i => i.Id == userId);
@@ -31,7 +31,7 @@ namespace Reposatiory
             if (!checkProperty)
             {
                 aPIResult.Message = "Property not found";
-                aPIResult.StatusCode = 409;
+                aPIResult.StatusCode = 404;
                 aPIResult.IsSucceed = false;
                 return aPIResult;
             }

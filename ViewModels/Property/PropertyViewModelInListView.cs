@@ -8,7 +8,7 @@ namespace ViewModels
 {
     public class PropertyViewModelInListView
     {
-        public int PropertyId { get; set; }
+        public string PropertyId { get; set; }
         public string ImageUrl { get; set; }
         public string Address { get; set; }
         public string City {  get; set; }

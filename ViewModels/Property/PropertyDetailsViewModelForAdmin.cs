@@ -9,7 +9,7 @@ namespace ViewModels
 {
     public class PropertyDetailsViewModelForAdmin
     {
-        public int PropertyId { get; set; }
+        public string PropertyId { get; set; }
         public int GovernorateId {  get; set; }
         public string Governorate { get; set; }
         public int CityId {  get; set; } 
@@ -24,7 +24,7 @@ namespace ViewModels
         public int NumberOfShares { get; set; }
         public int MinNumberOfShares {  get; set; }
         public int AvailableShares { get; set; }
-        public int UsedShares { get; set; }
+        public int PendingShares { get; set; }
         public double SharePrice { get; set; }
         public double AnnualRentalYield { get; set; }
         public double AnnualPriceAppreciation { get; set; }

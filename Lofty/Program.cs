@@ -1,3 +1,4 @@
+using Lofty.SchudleTask;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -54,6 +55,8 @@ namespace WebApis
             appbuilder.Services.AddScoped(typeof(UnitOfWork));
             appbuilder.Services.AddScoped(typeof(PropertyFacilityManager));
             appbuilder.Services.AddScoped(typeof(BuyTrackerManager));
+            appbuilder.Services.AddScoped(typeof(OrderManager));
+            appbuilder.Services.AddHostedService<OrderConfirmationBackgroundService>();
             appbuilder.Services.AddControllers(
                 con => con.Filters.Add<ExceptionFilter>()
                 ).AddNewtonsoftJson(option =>

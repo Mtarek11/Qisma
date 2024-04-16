@@ -17,9 +17,9 @@ namespace Reposatiory
         private readonly PropertyImageManager propertyImageManager = _propertyImageManager;
         private readonly CityManager cityManager = _cityManager;
         private readonly UnitOfWork unitOfWork = _unitOfWork;
-        public async Task<APIResult<int>> AddNewPropertyAsync(AddNewPropertyViewModel viewModel)
+        public async Task<APIResult<string>> AddNewPropertyAsync(AddNewPropertyViewModel viewModel)
         {
-            APIResult<int> aPIResult = new APIResult<int>();
+            APIResult<string> aPIResult = new APIResult<string>();
             bool checkCity = await cityManager.CheckCityAsync(viewModel.CityId, viewModel.GovernorateId);
             if (!checkCity)
             { 
@@ -29,6 +29,11 @@ namespace Reposatiory
                 return aPIResult;
             }
             Property property = viewModel.ToPropertyModel();
+            char randomChar1 = (char)new Random().Next('A', 'Z' + 1);
+            char randomChar2 = (char)new Random().Next('A', 'Z' + 1);
+            int randomNumber = new Random().Next(100000, 999999);
+            string guid = randomChar1 + randomChar2 + randomNumber.ToString();
+            property.Id = guid;
             if (viewModel.Facilities != null) 
             {
                 foreach (AddPropertyFacilityViewModel facility in viewModel.Facilities)
@@ -62,10 +67,11 @@ namespace Reposatiory
         public async Task<APIResult<string>> UpdatePropertyAsync(UpdatePropertyViewModel viewModel)
         {
             APIResult<string> aPIResult = new();
-            Property property = new()
+            Property property = await GetAll().Where(i => i.Id == viewModel.PropertyId).Select(i => new Property()
             {
-                Id = viewModel.PropertyId
-            }; 
+                Id = i.Id,
+                UsedShares = i.UsedShares
+            }).FirstOrDefaultAsync();
             PartialUpdate(property);
             bool isUpdated = false;
             if (viewModel.CityId != null && viewModel.GovernorateId != null)
@@ -112,6 +118,13 @@ namespace Reposatiory
             }
             if (viewModel.NumberOfShares != null)
             {
+                if (viewModel.NumberOfShares < property.UsedShares)
+                {
+                    aPIResult.Message = "Total number of shares cannot be less than pending shares, Cancell pending shares first";
+                    aPIResult.StatusCode = 409;
+                    aPIResult.IsSucceed = false;
+                    return aPIResult;
+                }
                 property.NumberOfShares = (int)viewModel.NumberOfShares;
                 isUpdated = true;
             }
@@ -184,7 +197,7 @@ namespace Reposatiory
                 catch (DbUpdateException)
                 {
                     aPIResult.Message = "Property not found";
-                    aPIResult.StatusCode = 400;
+                    aPIResult.StatusCode = 404;
                     aPIResult.IsSucceed = false;
                     return aPIResult;
                 }
@@ -243,9 +256,9 @@ namespace Reposatiory
             List<PropertyViewModelInListView> properties = await query.Select(PropertyExtansions.ToPropertyViewModelInListExpression(isAdmin)).Skip(itemsToSkip).Take(pageSize).ToListAsync();
             if (properties.Count > 0)
             { 
-                int totalItems = await query.CountAsync();
+                int totalItems = await query.CountAsync(); 
                 totalItemsNumber = totalItems;
-                totalPageNumbers = (int)Math.Ceiling((double)totalItems / 10);
+                totalPageNumbers = (int)Math.Ceiling((double)totalItems / pageSize);
             }
             PaginationViewModel<PropertyViewModelInListView> paginationViewModel = new()
             {
@@ -255,17 +268,17 @@ namespace Reposatiory
             };
             return paginationViewModel;
         }
-        public async Task<PropertyDetailsViewModelForUser> GetPropertyDetailsByIdForUserAsync(int propertyId)
+        public async Task<PropertyDetailsViewModelForUser> GetPropertyDetailsByIdForUserAsync(string propertyId)
         {
             PropertyDetailsViewModelForUser property = await GetAll().Where(i => i.Id == propertyId).Select(PropertyExtansions.ToPropertyDetailsViewModelForUserExpression()).FirstOrDefaultAsync();
             return property;
         }   
-        public async Task<PropertyDetailsViewModelForAdmin> GetPropertyDetailsByIdForAdminAsync(int propertyId)
+        public async Task<PropertyDetailsViewModelForAdmin> GetPropertyDetailsByIdForAdminAsync(string propertyId)
         {
             PropertyDetailsViewModelForAdmin property = await GetAll().Where(i => i.Id == propertyId).Select(PropertyExtansions.ToPropertyDetailsViewModelForAdminExpression()).FirstOrDefaultAsync();
             return property;
         }  
-        public async Task<APIResult<string>> DeletePropertyAsync(int propertyId)
+        public async Task<APIResult<string>> EnableAndDisablePropertyAsync(string propertyId)
         {
             APIResult<string> aPIResult = new();
             Property property = await GetAll().Where(i => i.Id == propertyId).Select(i => new Property()
@@ -277,8 +290,9 @@ namespace Reposatiory
             {
                 if (property.IsDeleted)
                 {
+                    PartialUpdate(property);
                     property.IsDeleted = false;
-                    Update(property);
+                    property.LastModificationDate = DateTime.Now;
                     await unitOfWork.CommitAsync();
                     aPIResult.IsSucceed = true;
                     aPIResult.StatusCode = 200;
@@ -287,8 +301,9 @@ namespace Reposatiory
                 }
                 else
                 {
-                    property.IsDeleted = false;
-                    Update(property);
+                    PartialUpdate(property);
+                    property.IsDeleted = true;
+                    property.LastModificationDate = DateTime.Now;
                     await unitOfWork.CommitAsync();
                     aPIResult.IsSucceed = false;
                     aPIResult.StatusCode = 200;
@@ -299,7 +314,7 @@ namespace Reposatiory
             else
             {
                 aPIResult.IsSucceed = false;
-                aPIResult.StatusCode = 400;
+                aPIResult.StatusCode = 404;
                 aPIResult.Message = "Property not found";
                 return aPIResult;
             }

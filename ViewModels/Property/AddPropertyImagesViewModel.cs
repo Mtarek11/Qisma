@@ -11,7 +11,7 @@ namespace ViewModels
     public class AddPropertyImagesViewModel
     {
         [Required]
-        public int PropertyId { get; set; }
+        public string PropertyId { get; set; }
         [Required]
         public IFormFileCollection Images {  get; set; }
     }

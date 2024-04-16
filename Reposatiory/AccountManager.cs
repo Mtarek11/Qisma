@@ -162,5 +162,10 @@ namespace Reposatiory
                 return APIResult;
             }
         }
+        public async Task<UserInformationForCheckOutViewModel> GetUserInformationForCheckOutAsync(string userId)
+        {
+            UserInformationForCheckOutViewModel userInformation = await GetAll().Where(i => i.Id == userId).Select(AccountExtansions.ToUserInformationForCheckOutExpression()).FirstOrDefaultAsync();
+            return userInformation;
+        }
     }
 }

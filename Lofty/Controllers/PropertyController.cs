@@ -72,7 +72,7 @@ namespace Lofty.Controllers
                 }
                 else
                 {
-                    return Ok(new APIResult<string>()
+                    return Ok(new APIResult<PaginationViewModel<PropertyViewModelInListView>>()
                     {
                         IsSucceed = false,
                         StatusCode = 200,
@@ -97,8 +97,9 @@ namespace Lofty.Controllers
         /// <returns></returns>
         [HttpGet("api/Property/GetById")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<PropertyDetailsViewModelForUser>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<string>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
-        public async Task<IActionResult> GetPropertyDetailsByIdAsync([FromQuery, Required] int PropertyId)
+        public async Task<IActionResult> GetPropertyDetailsByIdAsync([FromQuery, Required] string PropertyId)
         {
             if (ModelState.IsValid)
             {
@@ -115,10 +116,10 @@ namespace Lofty.Controllers
                 }
                 else
                 {
-                    return Ok(new APIResult<string>()
+                    return NotFound(new APIResult<string>()
                     {
                         IsSucceed = false,
-                        StatusCode = 200,
+                        StatusCode = 404,
                         Message = "Property not found"
                     });
                 }

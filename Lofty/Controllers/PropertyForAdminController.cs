@@ -31,20 +31,20 @@ namespace Lofty.Controllers
         /// <param name="viewModel"></param>
         /// <returns></returns>
         [HttpPost("api/Dashboard/Property/Add")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<int>))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<int>))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
         public async Task<IActionResult> AddNewPropertyAsync([FromBody] AddNewPropertyViewModel viewModel)
         {
             if (ModelState.IsValid)
             {
-                APIResult<int> result = await propertyManager.AddNewPropertyAsync(viewModel);
+                APIResult<string> result = await propertyManager.AddNewPropertyAsync(viewModel);
                 return new JsonResult(result)
                 {
                     StatusCode = result.StatusCode
                 };
             }
             else
-            {
+            { 
                 return BadRequest(new APIResult<string>()
                 {
                     Message = string.Join("; ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage)),
@@ -59,15 +59,15 @@ namespace Lofty.Controllers
         /// <param name="viewModel"></param>
         /// <returns></returns>
         [HttpPost("api/Dashboard/Property/AddFromForm")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<int>))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<int>))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
         public async Task<IActionResult> AddNewPropertyFromFormAsync([FromForm] AddNewPropertyViewModel viewModel)
         {
             if (ModelState.IsValid)
             {
-                APIResult<int> result = await propertyManager.AddNewPropertyAsync(viewModel);
+                APIResult<string> result = await propertyManager.AddNewPropertyAsync(viewModel);
                 if (!result.IsSucceed)
-                {
+                { 
                     return new JsonResult(result)
                     {
                         StatusCode = result.StatusCode
@@ -145,6 +145,7 @@ namespace Lofty.Controllers
         /// <returns></returns>
         [HttpPost("api/Dashboard/PropertyImages/Add")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<PropertyImageViewModelforAdmin>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<PropertyImageViewModelforAdmin>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
         public async Task<IActionResult> AddPropertyImagesAsync([FromForm] AddPropertyImagesViewModel viewModel)
         {
@@ -152,9 +153,9 @@ namespace Lofty.Controllers
             {
                 APIResult<PropertyImageViewModelforAdmin> checkAddedOrNot = await propertyImageManager.AddPropertyImageAsync(viewModel);
                 return new JsonResult(checkAddedOrNot)
-                {
+                { 
                     StatusCode = checkAddedOrNot.StatusCode
-                };
+                }; 
             }
             else
             {
@@ -174,7 +175,7 @@ namespace Lofty.Controllers
         [HttpGet("api/Dashboard/PropertyImages/GetAll")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<List<string>>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
-        public async Task<IActionResult> GetAllPropertyImagesAsync([FromQuery, Required] int PropertyId)
+        public async Task<IActionResult> GetAllPropertyImagesAsync([FromQuery, Required] string PropertyId)
         {
             if (ModelState.IsValid)
             {
@@ -191,7 +192,7 @@ namespace Lofty.Controllers
                 }
                 else
                 {
-                    return Ok(new APIResult<string>()
+                    return Ok(new APIResult<List<string>>()
                     {
                         IsSucceed = false,
                         StatusCode = 200,
@@ -230,7 +231,7 @@ namespace Lofty.Controllers
             }
             else
             {
-                return Ok(new APIResult<string>()
+                return Ok(new APIResult<List<FacilityViewModelForAdmin>>()
                 {
                     IsSucceed = false,
                     StatusCode = 200,
@@ -245,6 +246,7 @@ namespace Lofty.Controllers
         /// <returns></returns>
         [HttpDelete("api/Dashboard/PropertyImage/Delete")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<string>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
         public async Task<IActionResult> DeletePropertyImageAsync([FromQuery, Required] int PropertyImageId)
         {
@@ -265,7 +267,7 @@ namespace Lofty.Controllers
                     return Ok(new APIResult<string>()
                     {
                         IsSucceed = false,
-                        StatusCode = 400,
+                        StatusCode = 404,
                         Message = "Image not found"
                     });
                 }
@@ -288,6 +290,7 @@ namespace Lofty.Controllers
         /// <returns></returns>
         [HttpPost("api/Dashboard/PropertyFacility/Add")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<PropertyFacilityViewModelForAdmin>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<PropertyFacilityViewModelForAdmin>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
         public async Task<IActionResult> AddPropertyFacilityAsync([FromQuery, Required] AddPropertyFacilityViewModel viewModel, [FromQuery, Required] int PropertyId)
         {
@@ -297,7 +300,7 @@ namespace Lofty.Controllers
                 return new JsonResult(result)
                 {
                     StatusCode = result.StatusCode
-                };
+                }; 
             }
             else
             {
@@ -316,6 +319,7 @@ namespace Lofty.Controllers
         /// <returns></returns>
         [HttpDelete("api/Dashboard/PropertyFacility/Delete")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<string>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
         public async Task<IActionResult> DeletePropertyFacilityAsync([FromQuery, Required] int PropertyFacilityId)
         {
@@ -333,10 +337,10 @@ namespace Lofty.Controllers
                 }
                 else
                 {
-                    return Ok(new APIResult<string>()
+                    return NotFound(new APIResult<string>()
                     {
                         IsSucceed = false,
-                        StatusCode = 400,
+                        StatusCode = 404,
                         Message = "facility not found"
                     });
                 }
@@ -358,8 +362,9 @@ namespace Lofty.Controllers
         /// <returns></returns>
         [HttpGet("api/Dashboard/Property/GetById")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<PropertyDetailsViewModelForAdmin>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<string>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
-        public async Task<IActionResult> GetPropertyDetailsByIdAsync([FromQuery, Required] int PropertyId)
+        public async Task<IActionResult> GetPropertyDetailsByIdAsync([FromQuery, Required] string PropertyId)
         {
             if (ModelState.IsValid)
             {
@@ -379,7 +384,7 @@ namespace Lofty.Controllers
                     return Ok(new APIResult<string>()
                     {
                         IsSucceed = false,
-                        StatusCode = 200,
+                        StatusCode = 404,
                         Message = "Property not found"
                     });
                 }
@@ -401,7 +406,9 @@ namespace Lofty.Controllers
         /// <returns></returns>
         [HttpPut("api/Dashboard/Property/Update")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<string>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(APIResult<string>))]
         public async Task<IActionResult> UpdatePropertyAsync([FromBody] UpdatePropertyViewModel viewModel)
         {
             if (ModelState.IsValid)
@@ -410,7 +417,7 @@ namespace Lofty.Controllers
                 return new JsonResult(result)
                 {
                     StatusCode = result.StatusCode
-                };
+                }; 
             }
             else
             {
@@ -423,21 +430,22 @@ namespace Lofty.Controllers
             }
         }
         /// <summary>
-        /// Delete property
+        /// Enable and disable property
         /// </summary>
         /// <param name="PropertyId"></param>
         /// <returns></returns>
         [HttpPut("api/Dashboard/Property/EnableAndDisable")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<string>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
-        public async Task<IActionResult> DeletePropertyAsync([FromQuery, Required] int PropertyId)
+        public async Task<IActionResult> EnableAndDisablePropertyAsync([FromQuery, Required] string PropertyId)
         {
             if (ModelState.IsValid)
             {
-                APIResult<string> result = await propertyManager.DeletePropertyAsync(PropertyId);
+                APIResult<string> result = await propertyManager.EnableAndDisablePropertyAsync(PropertyId);
                 return new JsonResult(result)
                 {
-                    StatusCode = result.StatusCode
+                    StatusCode = result.StatusCode 
                 };
             }
             else

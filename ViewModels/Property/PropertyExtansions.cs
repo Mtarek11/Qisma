@@ -75,12 +75,12 @@ namespace ViewModels
                 MonthlyInstallment = property.MonthlyInstallment,
                 ProjectedAnnualReturn = property.AnnualRentalYield + property.AnnualPriceAppreciation,
                 Type = property.Type,
-                NumberOfShares = property.NumberOfShares,
+                NumberOfShares = property.NumberOfShares, 
                 MinNumberOfShares = property.MinOfShares,
                 NumberOfYears = property.NumberOfYears,
                 SharePrice = property.SharePrice,
                 UnitPrice = property.UnitPrice,
-                UsedShares = property.UsedShares,
+                PendingShares = property.UsedShares,
                 Status = property.Status,
                 IsDeleted = property.IsDeleted,
                 GovernorateId = property.GovernorateId,
@@ -102,6 +102,7 @@ namespace ViewModels
         {
             return i => new PropertyDetailsViewModelForUser
             {
+                PropertyId = i.Id,
                 TransactionFees = i.TransactionFees,
                 TransactionFeesNumerical = i.TransactionFees != null ? i.TransactionFees * i.UnitPrice : null,
                 Description = i.Description,
@@ -119,7 +120,7 @@ namespace ViewModels
                 MonthlyInstallment = i.MonthlyInstallment,
                 ProjectedAnnualReturn = i.AnnualRentalYield + i.AnnualPriceAppreciation,
                 Type = i.Type,
-                NumberOfShares = i.NumberOfShares,
+                NumberOfShares = i.AvailableShares,
                 MinNumberOfShares = i.MinOfShares,
                 NumberOfYears = i.NumberOfYears,
                 SharePrice = i.SharePrice,

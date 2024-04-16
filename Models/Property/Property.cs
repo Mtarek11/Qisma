@@ -9,7 +9,7 @@ namespace Models
 {
     public class Property
     {
-        public int Id { get; set; }
+        public string Id { get; set; }
         public virtual Governorate Governorate { get; set; }
         public int GovernorateId { get; set; }
         public virtual City City { get; set; }
@@ -24,7 +24,7 @@ namespace Models
         public double? TransactionFees { get; set; }
         public int NumberOfShares { get; set; }
         public int MinOfShares { get; set; }
-        public int AvailableShares { get; set; }
+        public int AvailableShares { get; set; } 
         public int UsedShares { get; set; }
         // Numerical
         public double SharePrice { get; set; }

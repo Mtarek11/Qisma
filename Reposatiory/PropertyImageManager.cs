@@ -73,7 +73,7 @@ namespace Reposatiory
             {
                 aPIResult.Message = "Property not found";
                 aPIResult.IsSucceed = false;
-                aPIResult.StatusCode = 400;
+                aPIResult.StatusCode = 404;
                 return aPIResult;
             }
         }
@@ -100,7 +100,7 @@ namespace Reposatiory
                 return false;
             }
         }
-        public async Task<List<string>> GetAllPropertyImagesAsync(int propertyId)
+        public async Task<List<string>> GetAllPropertyImagesAsync(string propertyId)
         {
             List<string> propertyImages = await GetAll().Where(i => i.PropertyId == propertyId).Select(i => i.ImageUrl).ToListAsync();
             return propertyImages;

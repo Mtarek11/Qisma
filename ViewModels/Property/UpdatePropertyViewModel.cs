@@ -12,7 +12,7 @@ namespace ViewModels
     public class UpdatePropertyViewModel
     {
         [Required]
-        public int PropertyId {  get; set; }
+        public string PropertyId {  get; set; }
         public string Location { get; set; }
         public int? GovernorateId { get; set; }
         public int? CityId { get; set; }

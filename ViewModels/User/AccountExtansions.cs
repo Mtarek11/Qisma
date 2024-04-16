@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -26,6 +27,36 @@ namespace ViewModels
                 Occupation = viewModel.Occupation,
                 PhoneNumber = viewModel.PhoneNumber,
                 ReciveEmails = viewModel.ReciveEmails,
+            };
+        }
+        public static Expression<Func<User, UserInformationForCheckOutViewModel>> ToUserInformationForCheckOutExpression()
+        {
+            return i => new UserInformationForCheckOutViewModel()
+            {
+                Email = i.Email,
+                IdNumber = i.IdentityNumber,
+                PhoneNumber = i.PhoneNumber,
+                UserAddress = i.Address,
+                UserName = i.FirstName + " " + i.MiddleName + " " + i.LastName,
+            };
+        }
+        public static UserFullInformationViewModel ToUserInformationViewModel(this User user)
+        {
+            return new UserFullInformationViewModel()
+            {
+                Address = user.Address,
+                CompanyName = user.CompanyName,
+                DateOfBirth = user.DateOfBirth,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                IdentityImageUrl = user.IdentityImageUrl,
+                IdentityNumber = user.IdentityNumber,
+                InvestorType = user.InvestoreType,
+                LastName = user.LastName,
+                MiddleName = user.MiddleName,
+                Occupation = user.Occupation,
+                PhoneNumber = user.PhoneNumber,
+                UserId = user.Id
             };
         }
     }

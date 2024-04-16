@@ -14,7 +14,6 @@ namespace Models
         {
             builder.ToTable("Properties");
             builder.HasKey(i => i.Id);
-            builder.Property(i => i.Id).ValueGeneratedOnAdd();
             builder.Property(i => i.Location).IsRequired(true);
             builder.Property(i => i.UnitPrice).IsRequired(true);
             builder.Property(i => i.Description).IsRequired(true);

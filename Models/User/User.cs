@@ -12,7 +12,7 @@ namespace Models
         public string FirstName { get; set; }
         public string MiddleName { get; set; }  
         public string LastName { get; set; }
-        public DateTime DateOfBirth {  get; set; }
+        public DateTime DateOfBirth {  get; set; } 
         public string Address {  get; set; }
         public string IdentityNumber {  get; set; }
         public string IdentityImageUrl {  get; set; }
@@ -21,6 +21,7 @@ namespace Models
         public bool ReciveEmails { get; set; }
         public InvestorType InvestoreType {  get; set; }
         public virtual ICollection<BuyTracker> BuyTrackers {  get; set; }
+        public virtual ICollection<Order> Orders {  get; set; }
     }
     public enum InvestorType
     {
