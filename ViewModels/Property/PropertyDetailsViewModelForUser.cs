@@ -32,6 +32,7 @@ namespace ViewModels
         public int? NumberOfYears { get; set; }
         public double? MaintenaceInstallment { get; set; }
         public double? DeliveryInstallment { get; set; }
+        public bool IsDeleted {  get; set; }
         public Models.Type Type { get; set; }
         public Status Status {  get; set; }
         public List<PropertyFacilityViewModelForUser> PropertyFacilities { get; set; } 

@@ -29,7 +29,7 @@ namespace Reposatiory
             }).FirstOrDefaultAsync();
             if (buyTracker == null)
             {
-                aPIResult.Message = "Cannot create order before go to ordering page";
+                aPIResult.Message = "Cannot create order before going to property details page";
                 aPIResult.StatusCode = 409;
                 aPIResult.IsSucceed = false;
                 return aPIResult;
@@ -39,8 +39,6 @@ namespace Reposatiory
                 SharePrice = i.SharePrice,
                 AvailableShares = i.AvailableShares,
                 MinOfShares = i.MinOfShares,
-                AnnualPriceAppreciation = i.AnnualPriceAppreciation,
-                AnnualRentalYield = i.AnnualRentalYield,
                 DeliveryInstallment = i.DeliveryInstallment,
                 DownPayment = i.DownPayment,
                 Id = i.Id,
@@ -50,7 +48,8 @@ namespace Reposatiory
                 MonthlyInstallment = i.MonthlyInstallment,
                 NumberOfYears = i.NumberOfYears,
                 TransactionFees = i.TransactionFees,
-                UnitPrice = i.UnitPrice,
+                PropertyUnitPrices = i.PropertyUnitPrices,
+                UsedShares = i.UsedShares,
             }).FirstOrDefaultAsync();
             if (property == null)
             {
@@ -63,7 +62,7 @@ namespace Reposatiory
             {
                 if (buyTracker.LastProceedDate <= property.LastModificationDate)
                 {
-                    aPIResult.Message = "Property updated, go to ordering page again";
+                    aPIResult.Message = "Property updated, go to property details page again";
                     aPIResult.StatusCode = 409;
                     aPIResult.IsSucceed = false;
                     return aPIResult;
@@ -99,16 +98,13 @@ namespace Reposatiory
                     SharePrice = property.SharePrice,
                     NumberOfShares = numberOfShares,
                     OrderStatus = OrderStatus.Pending,
-                    AnnualPriceAppreciation = property.AnnualPriceAppreciation,
-                    AnnualRentalYield = property.AnnualRentalYield,
-                    DeliveryInstallment = property.DeliveryInstallment != null ? property.DeliveryInstallment / numberOfShares : 0,
+                    TransactionFees = property.TransactionFees != null ? (property.TransactionFees / property.NumberOfShares) * numberOfShares : 0,
                     DownPayment = property.DownPayment != null ? property.DownPayment / numberOfShares : 0,
-                    MaintenaceInstallment = property.MaintenaceInstallment != null ? property.MaintenaceInstallment / numberOfShares : 0,
-                    MaintenanceCost = property.MaintenanceCost != null ? property.MaintenanceCost / numberOfShares : 0,
                     MonthlyInstallment = property.MonthlyInstallment != null ? property.MonthlyInstallment / numberOfShares : 0,
                     NumberOfYears = property.NumberOfYears != null ? property.NumberOfYears : 0,
+                    MaintenaceInstallment = property.MaintenaceInstallment != null ? property.MaintenaceInstallment / numberOfShares : 0,
+                    DeliveryInstallment = property.DeliveryInstallment != null ? property.DeliveryInstallment / numberOfShares : 0,
                     OrderDate = DateTime.Now,
-                    TransactionFees = property.TransactionFees != null ? property.TransactionFees / numberOfShares : 0
                 };
                 await AddAsync(order);
                 await unitOfWork.CommitAsync();
@@ -123,47 +119,30 @@ namespace Reposatiory
             List<Order> orders = await GetAll().Where(i => i.OrderDate.AddDays(2) < DateTime.Now && i.OrderStatus == OrderStatus.Pending).Select(i => new Order()
             {
                 Id = i.Id,
+                Property = i.Property,
             }).ToListAsync();
             if (orders.Count > 0)
             {
                 foreach(Order order in orders)
                 {
+                    Property property = order.Property;
+                    property.UsedShares -= order.NumberOfShares;
+                    propertyManager.Update(property);
                     Remove(order);
                 }
                 await unitOfWork.CommitAsync();
             }
         }
-        public async Task<PaginationViewModel<OrderViewModelForAdmin>> GetAllPendingOrdersForAdminAsync(int pageNumber, int pageSize)
+        public async Task<PaginationViewModel<OrderViewModelForAdmin>> GetAllOrdersForAdminAsync(int pageNumber, int pageSize, OrderStatus orderStatus)
         {
             int itemsToSkip = pageNumber * pageSize;
             int totalPageNumbers = 0;
             int totalItemsNumber = 0;
-            List<OrderViewModelForAdmin> Orders = await GetAll().Where(i => i.OrderStatus == OrderStatus.Pending).Select(OrderExtansions.ToOrderDetailsViewModelForAdminExpression())
+            List<OrderViewModelForAdmin> Orders = await GetAll().Where(i => i.OrderStatus == orderStatus).Select(OrderExtansions.ToOrderDetailsViewModelForAdminExpression())
                 .Skip(itemsToSkip).Take(pageSize).ToListAsync();
             if (Orders.Count > 0)
-            {
-                int totalItems = await GetAll().Where(i => i.OrderStatus == OrderStatus.Pending).CountAsync();
-                totalItemsNumber = totalItems;
-                totalPageNumbers = (int)Math.Ceiling((double)totalItems / pageSize);
-            }
-            PaginationViewModel<OrderViewModelForAdmin> paginationViewModel = new()
-            {
-                ItemsList = Orders,
-                TotalPageNumbers = totalPageNumbers,
-                TotalItemsNumber = totalItemsNumber
-            };
-            return paginationViewModel;
-        }
-        public async Task<PaginationViewModel<OrderViewModelForAdmin>> GetAllConfirmedOrdersForAdminAsync(int pageNumber, int pageSize)
-        {
-            int itemsToSkip = pageNumber * pageSize;
-            int totalPageNumbers = 0;
-            int totalItemsNumber = 0;
-            List<OrderViewModelForAdmin> Orders = await GetAll().Where(i => i.OrderStatus == OrderStatus.Confirmed).Select(OrderExtansions.ToOrderDetailsViewModelForAdminExpression())
-                .Skip(itemsToSkip).Take(pageSize).ToListAsync();
-            if (Orders.Count > 0)
-            {
-                int totalItems = await GetAll().Where(i => i.OrderStatus == OrderStatus.Confirmed).CountAsync();
+            { 
+                int totalItems = await GetAll().Where(i => i.OrderStatus == orderStatus).CountAsync();
                 totalItemsNumber = totalItems;
                 totalPageNumbers = (int)Math.Ceiling((double)totalItems / pageSize);
             }
@@ -181,7 +160,13 @@ namespace Reposatiory
             Order order = await GetAll().Where(i => i.Id == orderId).Select(i => new Order()
             {
                 Id = i.Id,
-                OrderStatus = i.OrderStatus
+                OrderStatus = i.OrderStatus,
+                Property = new Property()
+                {
+                    Id = i.Property.Id,
+                    UsedShares = i.Property.UsedShares,
+                    NumberOfShares = i.Property.NumberOfShares,
+                }
             }).FirstOrDefaultAsync();
             if (order != null)
             {
@@ -189,6 +174,8 @@ namespace Reposatiory
                 {
                     PartialUpdate(order);
                     order.OrderStatus = OrderStatus.Confirmed;
+                    order.Property.NumberOfShares = order.Property.NumberOfShares - order.NumberOfShares;
+                    order.Property.UsedShares = order.Property.UsedShares - order.NumberOfShares;
                     await unitOfWork.CommitAsync();
                     aPIResult.Message = "Order confirmed";
                     aPIResult.StatusCode = 200;
@@ -211,17 +198,17 @@ namespace Reposatiory
                 return aPIResult;
             }
         }
-        public async Task<PaginationViewModel<OrderViewModelForUser>> GetAllPendingOrdersForUserAsync(int pageNumber, int pageSize, string userId)
+        public async Task<PaginationViewModel<OrderViewModelForUser>> GetAllOrdersForUserAsync(int pageNumber, int pageSize, string userId, OrderStatus orderStatus)
         {
             int itemsToSkip = pageNumber * pageSize;
             int totalPageNumbers = 0;
             int totalItemsNumber = 0;
-            List<OrderViewModelForUser> Orders = await GetAll().Where(i => i.OrderStatus == OrderStatus.Pending && i.UserId == userId)
+            List<OrderViewModelForUser> Orders = await GetAll().Where(i => i.OrderStatus == orderStatus && i.UserId == userId)
                 .Select(OrderExtansions.ToOrderDetailsViewModelForUserExpression())
                 .Skip(itemsToSkip).Take(pageSize).ToListAsync();
             if (Orders.Count > 0)
-            {
-                int totalItems = await GetAll().Where(i => i.OrderStatus == OrderStatus.Pending && i.UserId == userId).CountAsync();
+            { 
+                int totalItems = await GetAll().Where(i => i.OrderStatus == orderStatus && i.UserId == userId).CountAsync();
                 totalItemsNumber = totalItems;
                 totalPageNumbers = (int)Math.Ceiling((double)totalItems / pageSize);
             }
@@ -233,52 +220,69 @@ namespace Reposatiory
             };
             return paginationViewModel;
         }
-        public async Task<PaginationViewModel<OrderViewModelForUser>> GetAllConfirmedOrdersForUserAsync(int pageNumber, int pageSize, string userId)
-        {
-            int itemsToSkip = pageNumber * pageSize;
-            int totalPageNumbers = 0;
-            int totalItemsNumber = 0;
-            List<OrderViewModelForUser> Orders = await GetAll().Where(i => i.OrderStatus == OrderStatus.Confirmed && i.UserId == userId)
-                .Select(OrderExtansions.ToOrderDetailsViewModelForUserExpression())
-                .Skip(itemsToSkip).Take(pageSize).ToListAsync();
-            if (Orders.Count > 0)
-            {
-                int totalItems = await GetAll().Where(i => i.OrderStatus == OrderStatus.Confirmed && i.UserId == userId).CountAsync();
-                totalItemsNumber = totalItems;
-                totalPageNumbers = (int)Math.Ceiling((double)totalItems / pageSize);
-            }
-            PaginationViewModel<OrderViewModelForUser> paginationViewModel = new()
-            {
-                ItemsList = Orders,
-                TotalPageNumbers = totalPageNumbers,
-                TotalItemsNumber = totalItemsNumber
-            };
-            return paginationViewModel;
-        }
-        public async Task<UserPortfolioViewModel> GetUserPortfolioAsync(string userId)
-        {
-            UserPortfolioViewModel userPortfolio = new();
-            List<Order> userOrders = await GetAll().Where(i => i.UserId == userId && i.OrderStatus == OrderStatus.Confirmed).Select(i => new Order()
-            {
-                SharePrice = i.SharePrice,
-                NumberOfShares = i.NumberOfShares,
-                ConfirmationDate = i.ConfirmationDate,
-                Property = new Property()
-                {
-                  Status = i.Property.Status,
-                  AnnualPriceAppreciation = i.an
-                },
-            }).ToListAsync();
-            if (userOrders.Count > 0)
-            {
-                foreach(Order order in  userOrders)
-                {
-                    userPortfolio.ProtfolioValue += (order.SharePrice * order.NumberOfShares);
-                }
-                userPortfolio.CurrentMonth = DateTime.Now.Month;
-                userPortfolio.NumberOfProperties = userOrders.Count;
-                userPortfolio.
-            }
-        }
+        //public async Task<UserPortfolioViewModel> GetUserPortfolioAsync(string userId)
+        //{
+        //    UserPortfolioViewModel userPortfolio = new();
+        //    List<Order> userOrders = await GetAll().Where(i => i.UserId == userId && i.OrderStatus == OrderStatus.Confirmed).Select(i => new Order()
+        //    {
+        //        SharePrice = i.SharePrice,
+        //        NumberOfShares = i.NumberOfShares,
+        //        ConfirmationDate = i.ConfirmationDate,
+        //        Property = new Property()
+        //        {
+        //          SharePrice = i.Property.SharePrice,
+        //          NumberOfShares = i.Property.NumberOfShares,
+        //          PropertyRentalYields = i.Property.PropertyRentalYields,
+        //          AnnualPriceAppreciation = i.Property.AnnualPriceAppreciation,
+        //          PropertyUnitPrices = i.Property.PropertyUnitPrices
+        //        },
+        //    }).ToListAsync();
+        //    if (userOrders.Count > 0)
+        //    {
+        //        foreach(Order order in  userOrders)
+        //        {
+        //            userPortfolio.ProtfolioValue += (order.Property.SharePrice * order.NumberOfShares);
+        //            DateTime orderConfirmationDate = (DateTime)order.ConfirmationDate;
+        //            double propertyRentalYield = order.Property.PropertyRentalYields.Where(i =>i.To == null).Select(i => i.RentalYield).FirstOrDefault();
+        //            List<PropertyUnitPrice> propertyUnitPrices = order.Property.PropertyUnitPrices.Where(i => i.To == null || i.To >= new DateTime(DateTime.Now.Year, 1, 1)
+        //            ).ToList();
+        //            foreach(PropertyUnitPrice propertyUnitPrice in propertyUnitPrices)
+        //            {
+        //                if (propertyUnitPrice.To == null)
+        //                {
+        //                    if (new DateTime(DateTime.Now.Year, 1, 1) >= orderConfirmationDate)
+        //                    {
+        //                        int numberOfMonthes = DateTime.Now.Month;
+        //                        userPortfolio.GrossMonthlyIncome = userPortfolio.GrossMonthlyIncome + (propertyRentalYield * propertyUnitPrice.UnitPrice * order.NumberOfShares)
+        //                            / (order.Property.NumberOfShares * numberOfMonthes);
+        //                    }
+        //                    else
+        //                    {
+        //                        int numberOfMonthes = DateTime.Now.Month - orderConfirmationDate.Month + 1;
+        //                        userPortfolio.GrossMonthlyIncome = userPortfolio.GrossMonthlyIncome + (propertyRentalYield * propertyUnitPrice.UnitPrice * order.NumberOfShares)
+        //                            / (order.Property.NumberOfShares * numberOfMonthes);
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    if (propertyUnitPrice.)
+        //                    {
+        //                        int numberOfMonthes = DateTime.Now.Month;
+        //                        userPortfolio.GrossMonthlyIncome = userPortfolio.GrossMonthlyIncome + (propertyRentalYield * propertyUnitPrice.UnitPrice * order.NumberOfShares)
+        //                            / (order.Property.NumberOfShares * numberOfMonthes);
+        //                    }
+        //                    else
+        //                    {
+        //                        int numberOfMonthes = DateTime.Now.Month - orderConfirmationDate.Month + 1;
+        //                        userPortfolio.GrossMonthlyIncome = userPortfolio.GrossMonthlyIncome + (propertyRentalYield * propertyUnitPrice.UnitPrice * order.NumberOfShares)
+        //                            / (order.Property.NumberOfShares * numberOfMonthes);
+        //                    }
+        //                }
+        //            }
+        //        }
+        //        userPortfolio.CurrentMonth = DateTime.Now.Month;
+        //        userPortfolio.NumberOfProperties = userOrders.Count;
+        //    }
+        //}
     }
 }

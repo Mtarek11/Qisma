@@ -29,17 +29,6 @@ namespace ViewModels
                 ReciveEmails = viewModel.ReciveEmails,
             };
         }
-        public static Expression<Func<User, UserInformationForCheckOutViewModel>> ToUserInformationForCheckOutExpression()
-        {
-            return i => new UserInformationForCheckOutViewModel()
-            {
-                Email = i.Email,
-                IdNumber = i.IdentityNumber,
-                PhoneNumber = i.PhoneNumber,
-                UserAddress = i.Address,
-                UserName = i.FirstName + " " + i.MiddleName + " " + i.LastName,
-            };
-        }
         public static UserFullInformationViewModel ToUserInformationViewModel(this User user)
         {
             return new UserFullInformationViewModel()

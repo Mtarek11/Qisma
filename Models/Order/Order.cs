@@ -14,10 +14,9 @@ namespace Models
         public string PropertyId { get; set; }
         public virtual User User { get; set; }
         public string UserId {  get; set; }
-        public double? MaintenanceCost { get; set; }
+        public double SharePrice { get; set; }
         public double? TransactionFees { get; set; }
         public int NumberOfShares { get; set; }
-        public double SharePrice { get; set; }
         public double? DownPayment { get; set; }
         public double? MonthlyInstallment { get; set; }
         public int? NumberOfYears { get; set; }

@@ -16,9 +16,8 @@ using ViewModels;
 
 namespace Reposatiory
 {
-    public class AccountManager(LoftyContext _mydB, UnitOfWork _unitOfWork, UserManager<User> _userManager, IConfiguration _configuration) : MainManager<User>(_mydB)
+    public class AccountManager(LoftyContext _mydB, UserManager<User> _userManager, IConfiguration _configuration) : MainManager<User>(_mydB)
     {
-        private readonly UnitOfWork unitOfWork = _unitOfWork;
         private readonly UserManager<User> userManager = _userManager;
         private readonly IConfiguration configuration = _configuration;
         public async Task<IdentityResult> CreatePasswordAsync(User user, string password)
@@ -161,11 +160,6 @@ namespace Reposatiory
                 APIResult.StatusCode = 401;
                 return APIResult;
             }
-        }
-        public async Task<UserInformationForCheckOutViewModel> GetUserInformationForCheckOutAsync(string userId)
-        {
-            UserInformationForCheckOutViewModel userInformation = await GetAll().Where(i => i.Id == userId).Select(AccountExtansions.ToUserInformationForCheckOutExpression()).FirstOrDefaultAsync();
-            return userInformation;
         }
     }
 }

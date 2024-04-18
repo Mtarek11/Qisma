@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace Models
 {
-    public class PropertyFacility
+    public class PropertyRentalYield
     {
         public int Id { get; set; }
-        public virtual Facility Facility { get; set; } 
-        public int FacilityId { get; set; }
         public virtual Property Property { get; set; }
-        public string PropertyId {  get; set; }
-        public string Description { get; set; }
+        public string PropertyId { get; set; }
+        public double RentalYield { get; set; }
+        public DateTime From { get; set; }
+        public DateTime? To { get; set; }
     }
 }

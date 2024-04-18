@@ -16,8 +16,6 @@ namespace Models
         public int CityId { get; set; }
         public string Location { get; set; }
         public string Description {  get; set; }
-        // Numerical
-        public double UnitPrice { get; set; }
         // Numerical and Percentage
         public double? MaintenanceCost { get; set; }
         // Numerical and Percentage
@@ -28,8 +26,6 @@ namespace Models
         public int UsedShares { get; set; }
         // Numerical
         public double SharePrice { get; set; }
-        // Percentage
-        public double AnnualRentalYield { get; set; }
         // Percentage
         public double AnnualPriceAppreciation { get; set; }
         // Numerical
@@ -45,10 +41,12 @@ namespace Models
         public Status Status {  get; set; }
         public bool IsDeleted {  get; set; }
         public DateTime LastModificationDate {  get; set; }
+        public virtual ICollection<PropertyUnitPrice> PropertyUnitPrices {  get; set; } = new List<PropertyUnitPrice>();
+        public virtual ICollection<PropertyRentalYield> PropertyRentalYields {  get; set; } = new List<PropertyRentalYield>();
         public virtual ICollection<PropertyFacility> PropertyFacilities { get; set; } = new List<PropertyFacility>();
         public virtual ICollection<PropertyImage> PropertyImages { get; set; } = new List<PropertyImage>();
         public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
-        public virtual ICollection<BuyTracker> BuyTrackers {  get; set; }
+        public virtual ICollection<BuyTracker> BuyTrackers {  get; set; } = new List<BuyTracker>();
     }
     public enum Type
     {

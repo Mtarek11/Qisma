@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Models;
 using System;
 using System.Collections.Generic;
@@ -12,29 +13,44 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace Reposatiory
 {
-    public class PropertyManager(LoftyContext _mydB, UnitOfWork _unitOfWork, CityManager _cityManager, PropertyImageManager _propertyImageManager) : MainManager<Property>(_mydB)
+    public class PropertyManager(LoftyContext _mydB, UnitOfWork _unitOfWork, CityManager _cityManager,
+        PropertyUnitPriceManager _propertyUnitPriceManager, PropertyRentalYieldManager _propertyRentalYieldManager, BuyTrackerManager _buyTrackerManager) : MainManager<Models.Property>(_mydB)
     {
-        private readonly PropertyImageManager propertyImageManager = _propertyImageManager;
+        private readonly BuyTrackerManager buyTrackerManager = _buyTrackerManager;
         private readonly CityManager cityManager = _cityManager;
         private readonly UnitOfWork unitOfWork = _unitOfWork;
+        private readonly PropertyUnitPriceManager propertyUnitPriceManager = _propertyUnitPriceManager;
+        private readonly PropertyRentalYieldManager propertyRentalYieldManager = _propertyRentalYieldManager;
         public async Task<APIResult<string>> AddNewPropertyAsync(AddNewPropertyViewModel viewModel)
         {
             APIResult<string> aPIResult = new APIResult<string>();
             bool checkCity = await cityManager.CheckCityAsync(viewModel.CityId, viewModel.GovernorateId);
             if (!checkCity)
-            { 
+            {
                 aPIResult.Message = "City must be inside the governorate";
                 aPIResult.IsSucceed = false;
                 aPIResult.StatusCode = 400;
                 return aPIResult;
             }
-            Property property = viewModel.ToPropertyModel();
+            Models.Property property = viewModel.ToPropertyModel();
+            PropertyUnitPrice propertyUnitPrice = new()
+            {
+                From = DateTime.Now,
+                UnitPrice = viewModel.UnitPrice
+            };
+            PropertyRentalYield propertyRentalYield = new()
+            {
+                RentalYield = viewModel.AnnualRentalYield,
+                From = DateTime.Now,
+            };
+            property.PropertyUnitPrices.Add(propertyUnitPrice);
+            property.PropertyRentalYields.Add(propertyRentalYield);
             char randomChar1 = (char)new Random().Next('A', 'Z' + 1);
             char randomChar2 = (char)new Random().Next('A', 'Z' + 1);
             int randomNumber = new Random().Next(100000, 999999);
             string guid = randomChar1 + randomChar2 + randomNumber.ToString();
             property.Id = guid;
-            if (viewModel.Facilities != null) 
+            if (viewModel.Facilities != null)
             {
                 foreach (AddPropertyFacilityViewModel facility in viewModel.Facilities)
                 {
@@ -43,7 +59,7 @@ namespace Reposatiory
                         FacilityId = facility.FacilityId,
                         Description = facility.Description,
                     };
-                    property.PropertyFacilities.Add(propertyFacility); 
+                    property.PropertyFacilities.Add(propertyFacility);
                 }
             }
             try
@@ -56,7 +72,7 @@ namespace Reposatiory
                 aPIResult.IsSucceed = true;
                 return aPIResult;
             }
-            catch(DbUpdateException ex)
+            catch (DbUpdateException ex)
             {
                 aPIResult.Message = ex.InnerException.Message;
                 aPIResult.StatusCode = 400;
@@ -67,145 +83,184 @@ namespace Reposatiory
         public async Task<APIResult<string>> UpdatePropertyAsync(UpdatePropertyViewModel viewModel)
         {
             APIResult<string> aPIResult = new();
-            Property property = await GetAll().Where(i => i.Id == viewModel.PropertyId).Select(i => new Property()
+            Models.Property property = await GetAll().Where(i => i.Id == viewModel.PropertyId).Select(i => new Models.Property()
             {
                 Id = i.Id,
-                UsedShares = i.UsedShares
+                UsedShares = i.UsedShares,
             }).FirstOrDefaultAsync();
-            PartialUpdate(property);
-            bool isUpdated = false;
-            if (viewModel.CityId != null && viewModel.GovernorateId != null)
+            if (property != null)
             {
-                bool checkCity = await cityManager.CheckCityAsync((int)viewModel.CityId, (int)viewModel.GovernorateId);
-                if (!checkCity)
+                PartialUpdate(property);
+                bool isUpdated = false;
+                if (viewModel.AnnualRentalYield != null)
                 {
-                    aPIResult.Message = "City must be inside the governorate";
-                    aPIResult.IsSucceed = false;
-                    aPIResult.StatusCode = 400;
-                    return aPIResult;
+                    PropertyRentalYield propertyRentalYield = await propertyRentalYieldManager.GetAll().Where(i => i.PropertyId == viewModel.PropertyId && i.To == null)
+                       .Select(i => new PropertyRentalYield()
+                       {
+                           Id = i.Id,
+                           To = i.To,
+                           From = i.From
+                       }).FirstOrDefaultAsync();
+                    if (propertyRentalYield.From.Year - DateTime.Now.Year <= 1)
+                    {
+                        aPIResult.Message = "Property rental yield can be updated on time a year";
+                        aPIResult.StatusCode = 409;
+                        aPIResult.IsSucceed = false;
+                        return aPIResult;
+                    }
+                    else
+                    {
+                        propertyRentalYieldManager.PartialUpdate(propertyRentalYield);
+                        propertyRentalYield.To = DateTime.Now;
+                        PropertyRentalYield newPropertyRentalYield = new()
+                        {
+                            PropertyId = viewModel.PropertyId,
+                            RentalYield = (double)viewModel.AnnualRentalYield,
+                            From = DateTime.Now,
+                        };
+                        await propertyRentalYieldManager.AddAsync(newPropertyRentalYield);
+                        isUpdated = true;
+                    }
                 }
-                else
+                if (viewModel.CityId != null && viewModel.GovernorateId != null)
                 {
-                    property.CityId = (int)viewModel.CityId;
-                    property.GovernorateId = (int)viewModel.GovernorateId;
+                    bool checkCity = await cityManager.CheckCityAsync((int)viewModel.CityId, (int)viewModel.GovernorateId);
+                    if (!checkCity)
+                    {
+                        aPIResult.Message = "City must be inside the governorate";
+                        aPIResult.IsSucceed = false;
+                        aPIResult.StatusCode = 400;
+                        return aPIResult;
+                    }
+                    else
+                    {
+                        property.CityId = (int)viewModel.CityId;
+                        property.GovernorateId = (int)viewModel.GovernorateId;
+                        isUpdated = true;
+                    }
+                }
+                if (viewModel.Location != null)
+                {
+                    property.Location = viewModel.Location;
                     isUpdated = true;
                 }
-            }
-            if (viewModel.Location != null)
-            {
-                property.Location = viewModel.Location;
-                isUpdated = true;
-            }
-            if (viewModel.UnitPrice != null)
-            {
-                property.UnitPrice = (double)viewModel.UnitPrice;
-                isUpdated = true;
-            }
-            if (viewModel.Description != null)
-            {
-                property.Description = viewModel.Description;
-                isUpdated = true;
-            }
-            if (viewModel.MaintenanceCost != null)
-            {
-                property.MaintenanceCost = viewModel.MaintenanceCost;
-                isUpdated = true;
-            }
-            if (viewModel.TransactionFees != null)
-            {
-                property.TransactionFees = viewModel.TransactionFees;
-                isUpdated = true;
-            }
-            if (viewModel.NumberOfShares != null)
-            {
-                if (viewModel.NumberOfShares < property.UsedShares)
+                if (viewModel.UnitPrice != null)
                 {
-                    aPIResult.Message = "Total number of shares cannot be less than pending shares, Cancell pending shares first";
-                    aPIResult.StatusCode = 409;
-                    aPIResult.IsSucceed = false;
-                    return aPIResult;
+                    PropertyUnitPrice propertyUnitPrice = await propertyUnitPriceManager.GetAll().Where(i => i.PropertyId == viewModel.PropertyId && i.To == null)
+                        .Select(i => new PropertyUnitPrice()
+                        {
+                            Id = i.Id,
+                            To = i.To,
+                        }).FirstOrDefaultAsync();
+                    propertyUnitPriceManager.PartialUpdate(propertyUnitPrice);
+                    propertyUnitPrice.To = DateTime.Now;
+                    PropertyUnitPrice newPropertyUnitPrice = new()
+                    {
+                        PropertyId = viewModel.PropertyId,
+                        From = DateTime.Now,
+                        UnitPrice = (double)viewModel.UnitPrice
+                    };
+                    await propertyUnitPriceManager.AddAsync(newPropertyUnitPrice);
+                    isUpdated = true;
                 }
-                property.NumberOfShares = (int)viewModel.NumberOfShares;
-                isUpdated = true;
-            }
-            if (viewModel.MinNumberOfShares != null)
-            {
-                property.MinOfShares = (int)viewModel.MinNumberOfShares;
-                isUpdated = true;
-            }
-            if (viewModel.SharePrice != null)
-            {
-                property.SharePrice = (int)viewModel.SharePrice;
-                isUpdated = true;
-            }
-            if (viewModel.AnnualRentalYield != null)
-            {
-                property.AnnualRentalYield = (double)viewModel.AnnualRentalYield;
-                isUpdated = true;
-            }
-            if (viewModel.AnnualPriceAppreciation != null)
-            {
-                property.AnnualPriceAppreciation = (double)viewModel.AnnualPriceAppreciation;
-                isUpdated = true;
-            }
-            if (viewModel.DownPayment != null)
-            {
-                property.DownPayment = (double)viewModel.DownPayment;
-                isUpdated = true;
-            }
-            if (viewModel.MonthlyInstallment != null)
-            {
-                property.MonthlyInstallment = viewModel.MonthlyInstallment;
-                isUpdated = true;
-            }
-            if (viewModel.DeliveryInstallment != null)
-            {
-                property.DeliveryInstallment = viewModel.DeliveryInstallment;
-                isUpdated = true;
-            }
-            if (viewModel.Type != null)
-            {
-                property.Type = (Models.Type)viewModel.Type;
-                isUpdated = true;
-            }
-            if (viewModel.Status != null)
-            {
-                property.Status = (Status)viewModel.Status;
-                isUpdated = true;
-            }
-            if (viewModel.NumberOfYears != null)
-            {
-                property.NumberOfYears = viewModel.NumberOfYears;
-                isUpdated = true;
-            }
-            if (viewModel.MaintenaceInstallment != null)
-            {
-                property.MaintenaceInstallment = viewModel.MaintenaceInstallment;
-                isUpdated = true;
-            }
-            if (isUpdated)
-            {
-                property.LastModificationDate = DateTime.Now;
-                try
+                if (viewModel.Description != null)
                 {
+                    property.Description = viewModel.Description;
+                    isUpdated = true;
+                }
+                if (viewModel.MaintenanceCost != null)
+                {
+                    property.MaintenanceCost = viewModel.MaintenanceCost;
+                    isUpdated = true;
+                }
+                if (viewModel.TransactionFees != null)
+                {
+                    property.TransactionFees = viewModel.TransactionFees;
+                    isUpdated = true;
+                }
+                if (viewModel.NumberOfShares != null)
+                {
+                    if (viewModel.NumberOfShares < property.UsedShares)
+                    {
+                        aPIResult.Message = "Total number of shares cannot be less than pending shares, Cancell pending shares first";
+                        aPIResult.StatusCode = 409;
+                        aPIResult.IsSucceed = false;
+                        return aPIResult;
+                    }
+                    property.NumberOfShares = (int)viewModel.NumberOfShares;
+                    isUpdated = true;
+                }
+                if (viewModel.MinNumberOfShares != null)
+                {
+                    property.MinOfShares = (int)viewModel.MinNumberOfShares;
+                    isUpdated = true;
+                }
+                if (viewModel.SharePrice != null)
+                {
+                    property.SharePrice = (int)viewModel.SharePrice;
+                    isUpdated = true;
+                }
+                if (viewModel.AnnualPriceAppreciation != null)
+                {
+                    property.AnnualPriceAppreciation = (double)viewModel.AnnualPriceAppreciation;
+                    isUpdated = true;
+                }
+                if (viewModel.DownPayment != null)
+                {
+                    property.DownPayment = (double)viewModel.DownPayment;
+                    isUpdated = true;
+                }
+                if (viewModel.MonthlyInstallment != null)
+                {
+                    property.MonthlyInstallment = viewModel.MonthlyInstallment;
+                    isUpdated = true;
+                }
+                if (viewModel.DeliveryInstallment != null)
+                {
+                    property.DeliveryInstallment = viewModel.DeliveryInstallment;
+                    isUpdated = true;
+                }
+                if (viewModel.Type != null)
+                {
+                    property.Type = (Models.Type)viewModel.Type;
+                    isUpdated = true;
+                }
+                if (viewModel.Status != null)
+                {
+                    property.Status = (Status)viewModel.Status;
+                    isUpdated = true;
+                }
+                if (viewModel.NumberOfYears != null)
+                {
+                    property.NumberOfYears = viewModel.NumberOfYears;
+                    isUpdated = true;
+                }
+                if (viewModel.MaintenaceInstallment != null)
+                {
+                    property.MaintenaceInstallment = viewModel.MaintenaceInstallment;
+                    isUpdated = true;
+                }
+                if (isUpdated)
+                {
+                    property.LastModificationDate = DateTime.Now;
                     await unitOfWork.CommitAsync();
                     aPIResult.Message = "Property updated";
                     aPIResult.StatusCode = 200;
                     aPIResult.IsSucceed = true;
                     return aPIResult;
                 }
-                catch (DbUpdateException)
+                else
                 {
-                    aPIResult.Message = "Property not found";
-                    aPIResult.StatusCode = 404;
+                    aPIResult.Message = "Nothing to update";
+                    aPIResult.StatusCode = 400;
                     aPIResult.IsSucceed = false;
                     return aPIResult;
                 }
             }
             else
             {
-                aPIResult.Message = "Nothing to update";
-                aPIResult.StatusCode = 400;
+                aPIResult.Message = "Property not found";
+                aPIResult.StatusCode = 404;
                 aPIResult.IsSucceed = false;
                 return aPIResult;
             }
@@ -214,9 +269,9 @@ namespace Reposatiory
             Models.Type? propertyType, double? minUnitPrice, double? maxUnitPrice, double? minSharePrice, double? maxSharePrice, bool isAdmin)
         {
             int itemsToSkip = pageNumber * pageSize;
-            int totalPageNumbers = 0; 
+            int totalPageNumbers = 0;
             int totalItemsNumber = 0;
-            IQueryable<Property> query;
+            IQueryable<Models.Property> query; 
             if (isAdmin)
             {
                 query = GetAll();
@@ -225,7 +280,7 @@ namespace Reposatiory
             {
                 query = GetAll().Where(i => !i.IsDeleted);
             }
-            if (governorateId != null) 
+            if (governorateId != null)
             {
                 query = query.Where(i => i.GovernorateId == governorateId);
             }
@@ -239,11 +294,11 @@ namespace Reposatiory
             }
             if (minUnitPrice != null)
             {
-                query = query.Where(i => i.UnitPrice >= minUnitPrice);
+                query = query.Where(i => i.PropertyUnitPrices.Where(i => i.To == null).Select(i => i.UnitPrice).FirstOrDefault() >= minUnitPrice);
             }
             if (maxUnitPrice != null)
             {
-                query = query.Where(i => i.UnitPrice <= maxUnitPrice);
+                query = query.Where(i => i.PropertyUnitPrices.Where(i => i.To == null).Select(i => i.UnitPrice).FirstOrDefault() <= maxUnitPrice);
             }
             if (minSharePrice != null)
             {
@@ -255,8 +310,8 @@ namespace Reposatiory
             }
             List<PropertyViewModelInListView> properties = await query.Select(PropertyExtansions.ToPropertyViewModelInListExpression(isAdmin)).Skip(itemsToSkip).Take(pageSize).ToListAsync();
             if (properties.Count > 0)
-            { 
-                int totalItems = await query.CountAsync(); 
+            {  
+                int totalItems = await query.CountAsync();
                 totalItemsNumber = totalItems;
                 totalPageNumbers = (int)Math.Ceiling((double)totalItems / pageSize);
             }
@@ -268,20 +323,47 @@ namespace Reposatiory
             };
             return paginationViewModel;
         }
-        public async Task<PropertyDetailsViewModelForUser> GetPropertyDetailsByIdForUserAsync(string propertyId)
+        public async Task<APIResult<PropertyDetailsViewModelForUser>> GetPropertyDetailsByIdForUserAsync(string propertyId, string userId)
         {
-            PropertyDetailsViewModelForUser property = await GetAll().Where(i => i.Id == propertyId).Select(PropertyExtansions.ToPropertyDetailsViewModelForUserExpression()).FirstOrDefaultAsync();
-            return property;
-        }   
+            APIResult<PropertyDetailsViewModelForUser> aPIResult = new();
+            PropertyDetailsViewModelForUser property = await GetAll().Where(i => i.Id == propertyId && i.IsDeleted == false)
+                .Select(PropertyExtansions.ToPropertyDetailsViewModelForUserExpression()).FirstOrDefaultAsync();
+            if (property != null)
+            { 
+                bool buyerTracker = await buyTrackerManager.ProceedWithBuyAsync(userId, propertyId);
+                if (buyerTracker)
+                {
+                    aPIResult.Data = property;
+                    aPIResult.IsSucceed = true;
+                    aPIResult.StatusCode = 200;
+                    aPIResult.Message = "Get property details";
+                    return aPIResult;
+                }
+                else
+                {
+                    aPIResult.IsSucceed = false;
+                    aPIResult.StatusCode = 401;
+                    aPIResult.Message = "User not found";
+                    return aPIResult;
+                }
+            }
+            else
+            {
+                aPIResult.Message = "Property not found";
+                aPIResult.IsSucceed = false;
+                aPIResult.StatusCode = 404;
+                return aPIResult;
+            } 
+        }
         public async Task<PropertyDetailsViewModelForAdmin> GetPropertyDetailsByIdForAdminAsync(string propertyId)
         {
             PropertyDetailsViewModelForAdmin property = await GetAll().Where(i => i.Id == propertyId).Select(PropertyExtansions.ToPropertyDetailsViewModelForAdminExpression()).FirstOrDefaultAsync();
             return property;
-        }  
+        } 
         public async Task<APIResult<string>> EnableAndDisablePropertyAsync(string propertyId)
         {
             APIResult<string> aPIResult = new();
-            Property property = await GetAll().Where(i => i.Id == propertyId).Select(i => new Property()
+            Models.Property property = await GetAll().Where(i => i.Id == propertyId).Select(i => new Models.Property()
             {
                 Id = i.Id,
                 IsDeleted = i.IsDeleted
@@ -318,6 +400,166 @@ namespace Reposatiory
                 aPIResult.Message = "Property not found";
                 return aPIResult;
             }
+        }
+        public async Task<APIResult<OrderingPageViewModel>> GetOrderingPageAsync(string userId, string propertyId)
+        {
+            APIResult<OrderingPageViewModel> aPIResult = new();
+            BuyTracker buyTracker = await buyTrackerManager.GetAll().Where(i => i.UserId == userId && i.PropertyId == propertyId).Select(i => new BuyTracker()
+            {
+                PropertyId = i.PropertyId,
+                UserId = i.UserId,
+                LastProceedDate = i.LastProceedDate,
+            }).FirstOrDefaultAsync();
+            if (buyTracker == null)
+            {
+                aPIResult.Message = "Cannot create order before going to property details page";
+                aPIResult.StatusCode = 409;
+                aPIResult.IsSucceed = false;
+                return aPIResult;
+            }
+            Models.Property property = await GetAll().Where(i => i.Id == propertyId && i.IsDeleted == false).Select(i => new Models.Property()
+            {
+                Id = i.Id,
+                AvailableShares = i.AvailableShares,
+                SharePrice = i.SharePrice,
+                MinOfShares = i.MinOfShares,
+                TransactionFees = i.TransactionFees,
+                DownPayment = i.DownPayment,
+                MonthlyInstallment = i.MonthlyInstallment,
+                NumberOfYears = i.NumberOfYears,
+                MaintenaceInstallment = i.MaintenaceInstallment,
+                DeliveryInstallment = i.DeliveryInstallment,
+                LastModificationDate = i.LastModificationDate,
+            }).FirstOrDefaultAsync();
+            if (property == null)
+            {
+                aPIResult.Message = "Property not found";
+                aPIResult.StatusCode = 404;
+                aPIResult.IsSucceed = false;
+                return aPIResult;
+            }
+            if (buyTracker.LastProceedDate <= property.LastModificationDate)
+            {
+                aPIResult.Message = "Property updated, go to property details page again";
+                aPIResult.StatusCode = 409;
+                aPIResult.IsSucceed = false;
+                return aPIResult;
+            }
+            OrderingPageViewModel orderingPage = new()
+            {
+                PropertyId = property.Id,
+                SharePrice = property.SharePrice,
+                TransactionFees = property.TransactionFees != null ? property.TransactionFees / property.NumberOfShares : null,
+                AvailableShares = property.AvailableShares,
+                MinNumberOfShares = property.MinOfShares,
+                DownPayment = property.DownPayment,
+                MonthlyInstallment = property.MonthlyInstallment,
+                NumberOfYears = property.NumberOfYears,
+                MaintenaceInstallment = property.MaintenanceCost,
+                DeliveryInstallment = property.DeliveryInstallment,
+            };
+            aPIResult.Data = orderingPage;
+            aPIResult.Message = "Ordering page";
+            aPIResult.StatusCode = 200;
+            aPIResult.IsSucceed = true;
+            return aPIResult;
+        }
+        public async Task<APIResult<OrderPreviewPageViewModel>> GetOrderPreviewAsync(string userId, string propertyId, int numberOfshares)
+        {
+            APIResult<OrderPreviewPageViewModel> aPIResult = new();
+            BuyTracker buyTracker = await buyTrackerManager.GetAll().Where(i => i.UserId == userId && i.PropertyId == propertyId).Select(i => new BuyTracker()
+            {
+                PropertyId = i.PropertyId,
+                UserId = i.UserId,
+                LastProceedDate = i.LastProceedDate,
+                User = new User()
+                {
+                    FirstName = i.User.FirstName,
+                    MiddleName = i.User.MiddleName,
+                    LastName = i.User.LastName,
+                    Email = i.User.Email,
+                    Address = i.User.Address,
+                    PhoneNumber = i.User.PhoneNumber,
+                    IdentityNumber = i.User.IdentityNumber
+                }
+            }).FirstOrDefaultAsync();
+            if (buyTracker == null)
+            {
+                aPIResult.Message = "Cannot create order before going to property details page";
+                aPIResult.StatusCode = 409;
+                aPIResult.IsSucceed = false;
+                return aPIResult;
+            }
+            Models.Property property = await GetAll().Where(i => i.Id == propertyId && i.IsDeleted == false).Select(i => new Models.Property()
+            {
+                Id = i.Id,
+                Location = i.Location,
+                Governorate = new Governorate()
+                {
+                    NameEn = i.Governorate.NameEn
+                },
+                City = new City()
+                {
+                    NameEn = i.City.NameEn
+                },
+                AvailableShares = i.AvailableShares,
+                SharePrice = i.SharePrice,
+                MinOfShares = i.MinOfShares,
+                TransactionFees = i.TransactionFees,
+                DownPayment = i.DownPayment,
+                MonthlyInstallment = i.MonthlyInstallment,
+                NumberOfYears = i.NumberOfYears,
+                MaintenaceInstallment = i.MaintenaceInstallment,
+                DeliveryInstallment = i.DeliveryInstallment,
+                LastModificationDate = i.LastModificationDate,
+            }).FirstOrDefaultAsync();
+            if (property == null)
+            {
+                aPIResult.Message = "Property not found";
+                aPIResult.StatusCode = 404;
+                aPIResult.IsSucceed = false;
+                return aPIResult;
+            }
+            if (buyTracker.LastProceedDate <= property.LastModificationDate)
+            {
+                aPIResult.Message = "Property updated, go to property details page again";
+                aPIResult.StatusCode = 409;
+                aPIResult.IsSucceed = false;
+                return aPIResult;
+            }
+            OrderingPageViewModel orderingPage = new()
+            {
+                PropertyId = property.Id,
+                SharePrice = property.SharePrice,
+                TransactionFees = property.TransactionFees != null ? (property.TransactionFees / property.NumberOfShares) * numberOfshares : null,
+                AvailableShares = property.AvailableShares,
+                MinNumberOfShares = property.MinOfShares,
+                DownPayment = property.DownPayment / numberOfshares,
+                MonthlyInstallment = property.MonthlyInstallment / numberOfshares,
+                NumberOfYears = property.NumberOfYears,
+                MaintenaceInstallment = property.MaintenanceCost / numberOfshares,
+                DeliveryInstallment = property.DeliveryInstallment / numberOfshares,
+            };
+            UserInformationForOrderPreviewViewModel userInformation = new()
+            {
+                Email = buyTracker.User.Email,
+                IdNumber = buyTracker.User.IdentityNumber,
+                PhoneNumber = buyTracker.User.PhoneNumber,
+                UserAddress = buyTracker.User.Address,
+                UserName = buyTracker.User.FirstName + " " + buyTracker.User.MiddleName + " " + buyTracker.User.LastName
+            };
+            OrderPreviewPageViewModel orderPreviewPage = new()
+            {
+                OrderingPage = orderingPage,
+                UserInformation = userInformation,
+                PropertyLocation = property.Governorate.NameEn + ", " + property.City.NameEn,
+                PropertyName = property.Location
+            };
+            aPIResult.Data = orderPreviewPage;
+            aPIResult.Message = "Order preview page";
+            aPIResult.StatusCode = 200;
+            aPIResult.IsSucceed = true;
+            return aPIResult;
         }
     }
 }

@@ -11,12 +11,9 @@ namespace ViewModels
     {
         public int OrderId { get; set; }
         public string OrderNumber { get; set; }
-        public double? MaintenanceCost { get; set; }
         public double? TransactionFees { get; set; }
         public int NumberOfShares { get; set; }
         public double SharePrice { get; set; }
-        public double AnnualRentalYield { get; set; }
-        public double AnnualPriceAppreciation { get; set; }
         public double? DownPayment { get; set; }
         public double? MonthlyInstallment { get; set; }
         public int? NumberOfYears { get; set; }

@@ -18,7 +18,6 @@ namespace Models
             builder.Property(i => i.NumberOfShares).IsRequired(true);
             builder.Property(i => i.OrderNumber).IsRequired(true);
             builder.Property(i => i.SharePrice).IsRequired(true);
-            builder.Property(i => i.MaintenanceCost).IsRequired(false);
             builder.Property(i => i.TransactionFees).IsRequired(false);
             builder.Property(i => i.DownPayment).IsRequired(false);
             builder.Property(i => i.MonthlyInstallment).IsRequired(false);

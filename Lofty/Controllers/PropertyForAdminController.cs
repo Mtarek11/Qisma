@@ -292,7 +292,7 @@ namespace Lofty.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<PropertyFacilityViewModelForAdmin>))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<PropertyFacilityViewModelForAdmin>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
-        public async Task<IActionResult> AddPropertyFacilityAsync([FromQuery, Required] AddPropertyFacilityViewModel viewModel, [FromQuery, Required] int PropertyId)
+        public async Task<IActionResult> AddPropertyFacilityAsync([FromQuery, Required] AddPropertyFacilityViewModel viewModel, [FromQuery, Required] string PropertyId)
         {
             if (ModelState.IsValid)
             {

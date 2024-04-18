@@ -56,6 +56,8 @@ namespace WebApis
             appbuilder.Services.AddScoped(typeof(PropertyFacilityManager));
             appbuilder.Services.AddScoped(typeof(BuyTrackerManager));
             appbuilder.Services.AddScoped(typeof(OrderManager));
+            appbuilder.Services.AddScoped(typeof(PropertyUnitPriceManager));
+            appbuilder.Services.AddScoped(typeof(PropertyRentalYieldManager));
             appbuilder.Services.AddHostedService<OrderConfirmationBackgroundService>();
             appbuilder.Services.AddControllers(
                 con => con.Filters.Add<ExceptionFilter>()

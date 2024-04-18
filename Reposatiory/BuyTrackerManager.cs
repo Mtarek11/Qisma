@@ -11,30 +11,11 @@ using ViewModels;
 
 namespace Reposatiory
 {
-    public class BuyTrackerManager(LoftyContext _mydB, UnitOfWork _unitOfWork, AccountManager _accountManager, PropertyManager _propertyManager) : MainManager<BuyTracker>(_mydB)
+    public class BuyTrackerManager(LoftyContext _mydB, UnitOfWork _unitOfWork) : MainManager<BuyTracker>(_mydB)
     {
-        private readonly PropertyManager propertyManager = _propertyManager;
-        private readonly AccountManager accountManager = _accountManager;
         private readonly UnitOfWork unitOfWork = _unitOfWork;   
-        public async Task<APIResult<string>> ProceedWithBuyAsync(string userId, string propertyId)
+        public async Task<bool> ProceedWithBuyAsync(string userId, string propertyId)
         {
-            APIResult<string> aPIResult = new();
-            bool checkUser = await accountManager.GetAll().AnyAsync(i => i.Id == userId);
-            if (!checkUser)
-            {
-                aPIResult.Message = "User not found";
-                aPIResult.StatusCode = 401;
-                aPIResult.IsSucceed = false;
-                return aPIResult;
-            }
-            bool checkProperty = await propertyManager.GetAll().AnyAsync(i => i.Id == propertyId && !i.IsDeleted);
-            if (!checkProperty)
-            {
-                aPIResult.Message = "Property not found";
-                aPIResult.StatusCode = 404;
-                aPIResult.IsSucceed = false;
-                return aPIResult;
-            }
             BuyTracker buyTracker = await GetAll().Where(i => i.UserId == userId && i.PropertyId == propertyId).Select(i => new BuyTracker()
             {
                 PropertyId = i.PropertyId,
@@ -46,10 +27,7 @@ namespace Reposatiory
                 PartialUpdate(buyTracker);
                 buyTracker.LastProceedDate = DateTime.Now;
                 await unitOfWork.CommitAsync();
-                aPIResult.Message = "Time updated";
-                aPIResult.StatusCode = 200;
-                aPIResult.IsSucceed = true;
-                return aPIResult;
+                return true;
             }
             else
             {
@@ -59,12 +37,16 @@ namespace Reposatiory
                     UserId = userId,
                     LastProceedDate = DateTime.Now,
                 };
-                await AddAsync(newBuyTracker);
-                await unitOfWork.CommitAsync();
-                aPIResult.Message = "Time updated";
-                aPIResult.StatusCode = 200;
-                aPIResult.IsSucceed = true;
-                return aPIResult;
+                try
+                {
+                    await AddAsync(newBuyTracker);
+                    await unitOfWork.CommitAsync();
+                    return true;
+                }
+                catch (DbUpdateException)
+                {
+                    return false;
+                }
             }
         }
     }

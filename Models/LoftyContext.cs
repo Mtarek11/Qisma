@@ -19,6 +19,8 @@ namespace Models
         public DbSet<City> Cities {  get; set; }
         public DbSet<BuyTracker> BuyTrackers {  get; set; }
         public DbSet<Order> Orders {  get; set; }
+        public DbSet<PropertyUnitPrice> PropertyUnitPrices {  get; set; }
+        public DbSet<PropertyRentalYield> PropertyRentalYields {  get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfiguration(new FacilityConfigurations());
@@ -30,6 +32,8 @@ namespace Models
             modelBuilder.ApplyConfiguration(new CityConfigurations());
             modelBuilder.ApplyConfiguration(new BuyTrackerConfigurations());
             modelBuilder.ApplyConfiguration(new OrderConfigurations());
+            modelBuilder.ApplyConfiguration(new PropertyUnitPriceConfigurations());
+            modelBuilder.ApplyConfiguration(new PropertyRentalYieldConfigurations());
             modelBuilder.DataSeed();
             base.OnModelCreating(modelBuilder);
         }

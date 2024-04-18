@@ -97,32 +97,85 @@ namespace Lofty.Controllers
         /// <returns></returns>
         [HttpGet("api/Property/GetById")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<PropertyDetailsViewModelForUser>))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<string>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<PropertyDetailsViewModelForUser>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(APIResult<PropertyDetailsViewModelForUser>))]
         public async Task<IActionResult> GetPropertyDetailsByIdAsync([FromQuery, Required] string PropertyId)
         {
             if (ModelState.IsValid)
             {
-                PropertyDetailsViewModelForUser property = await propertyManager.GetPropertyDetailsByIdForUserAsync(PropertyId);
-                if (property != null)
+                Claim userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                string userId = userIdClaim.Value;
+                APIResult<PropertyDetailsViewModelForUser> result = await propertyManager.GetPropertyDetailsByIdForUserAsync(PropertyId, userId);
+                return new JsonResult(result)
                 {
-                    return Ok(new APIResult<PropertyDetailsViewModelForUser>()
-                    {
-                        Data = property,
-                        IsSucceed = true,
-                        StatusCode = 200,
-                        Message = "Get property details"
-                    });
-                }
-                else
+                    StatusCode = result.StatusCode
+                };
+            }
+            else
+            {
+                return BadRequest(new APIResult<string>()
                 {
-                    return NotFound(new APIResult<string>()
-                    {
-                        IsSucceed = false,
-                        StatusCode = 404,
-                        Message = "Property not found"
-                    });
-                }
+                    Message = string.Join("; ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage)),
+                    IsSucceed = false,
+                    StatusCode = 400
+                });
+            }
+        }
+        /// <summary>
+        /// Get Ordering page
+        /// </summary>
+        /// <param name="PropertyId"></param>
+        /// <returns></returns>
+        [HttpGet("api/Property/GetOrderingPage")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<OrderingPageViewModel>))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(APIResult<OrderingPageViewModel>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<OrderingPageViewModel>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
+        public async Task<IActionResult> GetOrderingPageAsync([FromQuery, Required] string PropertyId)
+        {
+            if (ModelState.IsValid)
+            {
+                Claim userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                string userId = userIdClaim.Value;
+                APIResult<OrderingPageViewModel> result = await propertyManager.GetOrderingPageAsync(userId, PropertyId);
+                return new JsonResult(result)
+                {
+                    StatusCode = result.StatusCode
+                };
+            }
+            else
+            {
+                return BadRequest(new APIResult<string>()
+                {
+                    Message = string.Join("; ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage)),
+                    IsSucceed = false,
+                    StatusCode = 400
+                });
+            }
+        }
+        /// <summary>
+        /// Get Order preview page
+        /// </summary>
+        /// <param name="PropertyId"></param>
+        /// <param name="NumberOfShares"></param>
+        /// <returns></returns>
+        [HttpGet("api/Property/GetOrderPreviewPage")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<OrderPreviewPageViewModel>))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(APIResult<OrderPreviewPageViewModel>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<OrderPreviewPageViewModel>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
+        public async Task<IActionResult> GetOrderPreviewPageAsync([FromQuery, Required] string PropertyId, [FromQuery, Required] int NumberOfShares)
+        {
+            if (ModelState.IsValid)
+            { 
+                Claim userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                string userId = userIdClaim.Value;
+                APIResult<OrderPreviewPageViewModel> result = await propertyManager.GetOrderPreviewAsync(userId, PropertyId, NumberOfShares);
+                return new JsonResult(result)
+                {
+                    StatusCode = result.StatusCode
+                };
             }
             else
             {

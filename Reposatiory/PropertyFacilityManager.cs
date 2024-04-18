@@ -13,7 +13,7 @@ namespace Reposatiory
     public class PropertyFacilityManager(LoftyContext _mydB, UnitOfWork _unitOfWork) : MainManager<PropertyFacility>(_mydB)
     {
         private readonly UnitOfWork unitOfWork = _unitOfWork;
-        public async Task<APIResult<PropertyFacilityViewModelForAdmin>> AddFacilityToAPropertyAsync(AddPropertyFacilityViewModel viewModel, int propertyId)
+        public async Task<APIResult<PropertyFacilityViewModelForAdmin>> AddFacilityToAPropertyAsync(AddPropertyFacilityViewModel viewModel, string propertyId)
         {
             APIResult<PropertyFacilityViewModelForAdmin> aPIResult = new();
             PropertyFacility propertyFacility = new()

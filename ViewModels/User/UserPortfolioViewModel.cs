@@ -9,8 +9,7 @@ namespace ViewModels
     public class UserPortfolioViewModel
     {
         public double ProtfolioValue {  get; set; }
-        public double MonthlyIncome { get; set; }
-        public double TotalRentalIncome {  get; set; }
+        public double GrossMonthlyIncome { get; set; }
         public double TotalAppreciation { get; set; }
         public int NumberOfProperties {  get; set; }
         public int CurrentMonth {  get; set; }

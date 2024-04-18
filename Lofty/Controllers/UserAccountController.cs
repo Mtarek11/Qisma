@@ -71,37 +71,5 @@ namespace Lofty.Controllers
                 });
             }
         }
-        /// <summary>
-        /// Get user information for check out
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("api/User/UserInformationForCheckOut")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<UserInformationForCheckOutViewModel>))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(APIResult<string>))]
-        public async Task<IActionResult> GetUserInformationForCheckOutAsync()
-        {
-            Claim userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            string userId = userIdClaim.Value;
-            UserInformationForCheckOutViewModel userInformation = await accountManager.GetUserInformationForCheckOutAsync(userId);
-            if (userInformation != null)
-            {
-                return Ok(new APIResult<UserInformationForCheckOutViewModel>()
-                {
-                    Data = userInformation,
-                    StatusCode = 200,
-                    IsSucceed = true,
-                    Message = "User information"
-                });
-            }
-            else
-            {
-                return Unauthorized(new APIResult<string>()
-                {
-                    StatusCode = 401,
-                    IsSucceed = false,
-                    Message = "User not found"
-                });
-            }
-        }
     }
 }
