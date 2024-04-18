@@ -4,6 +4,8 @@ using Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mail;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using ViewModels;
@@ -11,7 +13,7 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Reposatiory
 {
-    public class OrderManager(LoftyContext _mydB, UnitOfWork _unitOfWork, BuyTrackerManager _buyTrackerManager, PropertyManager _propertyManager, 
+    public class OrderManager(LoftyContext _mydB, UnitOfWork _unitOfWork, BuyTrackerManager _buyTrackerManager, PropertyManager _propertyManager,
         AccountManager _accountManager) : MainManager<Order>(_mydB)
     {
         private readonly UnitOfWork unitOfWork = _unitOfWork;
@@ -34,7 +36,7 @@ namespace Reposatiory
                 aPIResult.IsSucceed = false;
                 return aPIResult;
             }
-            Property property = await propertyManager.GetAll().Where(i => i.Id == propertyId).Select(i => new Property()
+            Property property = await propertyManager.GetAll().Where(i => i.Id == propertyId && i.IsDeleted == false).Select(i => new Property()
             {
                 SharePrice = i.SharePrice,
                 AvailableShares = i.AvailableShares,
@@ -50,6 +52,8 @@ namespace Reposatiory
                 TransactionFees = i.TransactionFees,
                 PropertyUnitPrices = i.PropertyUnitPrices,
                 UsedShares = i.UsedShares,
+                Location = i.Location,
+                NumberOfShares = i.NumberOfShares
             }).FirstOrDefaultAsync();
             if (property == null)
             {
@@ -86,14 +90,15 @@ namespace Reposatiory
                     Id = i.Id,
                     FirstName = i.FirstName,
                     LastName = i.LastName,
-                    DateOfBirth = i.DateOfBirth
+                    DateOfBirth = i.DateOfBirth,
+                    Email = i.Email
                 }).FirstOrDefaultAsync();
                 propertyManager.PartialUpdate(property);
                 property.UsedShares += numberOfShares;
                 Order order = new()
                 {
                     UserId = userId,
-                    OrderNumber = propertyId + user.FirstName.First() + user.LastName.Last() + user.DateOfBirth.Day.ToString() + user.DateOfBirth.Month, 
+                    OrderNumber = propertyId + user.FirstName.First() + user.LastName.Last() + user.DateOfBirth.Day.ToString() + user.DateOfBirth.Month,
                     PropertyId = propertyId,
                     SharePrice = property.SharePrice,
                     NumberOfShares = numberOfShares,
@@ -108,6 +113,47 @@ namespace Reposatiory
                 };
                 await AddAsync(order);
                 await unitOfWork.CommitAsync();
+                using (var client = new SmtpClient("smtp.gmail.com", 587))
+                {
+                    client.UseDefaultCredentials = false;
+                    client.Credentials = new NetworkCredential("mohamedtarek70m@gmail.com", "ptuw vvlf rkue elgh");
+                    client.EnableSsl = true;
+                    MailAddress from = new MailAddress("mohamedtarek70m@gmail.com");
+                    MailAddress to = new MailAddress(user.Email);
+                    string subject = $"Your Order Confirmation - {property.Location} Fractional Ownership";
+                    string body = $@"<html>
+<head>
+<style>
+.bold {{
+    font-weight: bold;
+}}
+</style>
+</head>
+<body>
+Hello {user.FirstName} {user.LastName},<br>
+Thank you for choosing Qisma for your investment in {property.Location}. We’re pleased to confirm that your purchase of fractional shares has been processed successfully.<br>
+Someone from our customer service department will contact you shortly to walk you through the next steps. <br><br>
+<span class='bold'>Here are the details of your investment:</span><br>
+Property Name: {property.Location}<br>
+Fractional Shares Purchased: {order.NumberOfShares}<br>
+Total Investment: {(order.NumberOfShares * order.SharePrice).ToString("F2")}<br>
+First Payment: {order.DownPayment?.ToString("F2")}<br>
+Transaction ID: {order.OrderNumber}<br><br>
+You are kindly required to complete the first payment, {order.DownPayment?.ToString("F2")} EGP, within 48 hours. If payment is done through bank transfer or Instapay, please send a proof of payment to billing@qisma.co<br><br>
+We’ve attached the order confirmation form to this email for your records. If you have any questions or if there’s anything else you need, please contact our support team. <br><br>
+We’re here to help!<br>
+Thanks again for your trust,<br><br>
+QISMA
+</body>
+</html>";
+                    MailMessage message = new MailMessage(from, to)
+                    {
+                        Subject = subject,
+                        Body = body,
+                        IsBodyHtml = true // Set to true to indicate HTML content
+                    };
+                    client.Send(message);
+                }
                 aPIResult.Message = "Order placed";
                 aPIResult.StatusCode = 200;
                 aPIResult.IsSucceed = false;
@@ -119,15 +165,21 @@ namespace Reposatiory
             List<Order> orders = await GetAll().Where(i => i.OrderDate.AddDays(2) < DateTime.Now && i.OrderStatus == OrderStatus.Pending).Select(i => new Order()
             {
                 Id = i.Id,
-                Property = i.Property,
+                Property = new Property()
+                {
+                    Id = i.Property.Id,
+                    UsedShares = i.Property.UsedShares,
+                    NumberOfShares = i.Property.NumberOfShares,
+                    AvailableShares = i.Property.AvailableShares
+                }
             }).ToListAsync();
             if (orders.Count > 0)
             {
-                foreach(Order order in orders)
+                foreach (Order order in orders)
                 {
                     Property property = order.Property;
+                    propertyManager.PartialUpdate(property);
                     property.UsedShares -= order.NumberOfShares;
-                    propertyManager.Update(property);
                     Remove(order);
                 }
                 await unitOfWork.CommitAsync();
@@ -141,7 +193,7 @@ namespace Reposatiory
             List<OrderViewModelForAdmin> Orders = await GetAll().Where(i => i.OrderStatus == orderStatus).Select(OrderExtansions.ToOrderDetailsViewModelForAdminExpression())
                 .Skip(itemsToSkip).Take(pageSize).ToListAsync();
             if (Orders.Count > 0)
-            { 
+            {
                 int totalItems = await GetAll().Where(i => i.OrderStatus == orderStatus).CountAsync();
                 totalItemsNumber = totalItems;
                 totalPageNumbers = (int)Math.Ceiling((double)totalItems / pageSize);
@@ -161,6 +213,7 @@ namespace Reposatiory
             {
                 Id = i.Id,
                 OrderStatus = i.OrderStatus,
+                NumberOfShares = i.NumberOfShares,
                 Property = new Property()
                 {
                     Id = i.Property.Id,
@@ -207,7 +260,7 @@ namespace Reposatiory
                 .Select(OrderExtansions.ToOrderDetailsViewModelForUserExpression())
                 .Skip(itemsToSkip).Take(pageSize).ToListAsync();
             if (Orders.Count > 0)
-            { 
+            {
                 int totalItems = await GetAll().Where(i => i.OrderStatus == orderStatus && i.UserId == userId).CountAsync();
                 totalItemsNumber = totalItems;
                 totalPageNumbers = (int)Math.Ceiling((double)totalItems / pageSize);

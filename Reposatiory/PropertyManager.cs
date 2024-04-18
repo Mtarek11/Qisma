@@ -101,7 +101,7 @@ namespace Reposatiory
                            To = i.To,
                            From = i.From
                        }).FirstOrDefaultAsync();
-                    if (propertyRentalYield.From.Year - DateTime.Now.Year <= 1)
+                    if (DateTime.Now.Year - propertyRentalYield.From.Year <= 1)
                     {
                         aPIResult.Message = "Property rental yield can be updated on time a year";
                         aPIResult.StatusCode = 409;
@@ -387,7 +387,7 @@ namespace Reposatiory
                     property.IsDeleted = true;
                     property.LastModificationDate = DateTime.Now;
                     await unitOfWork.CommitAsync();
-                    aPIResult.IsSucceed = false;
+                    aPIResult.IsSucceed = true;
                     aPIResult.StatusCode = 200;
                     aPIResult.Message = "Property disabled";
                     return aPIResult;
@@ -430,6 +430,7 @@ namespace Reposatiory
                 MaintenaceInstallment = i.MaintenaceInstallment,
                 DeliveryInstallment = i.DeliveryInstallment,
                 LastModificationDate = i.LastModificationDate,
+                NumberOfShares = i.NumberOfShares
             }).FirstOrDefaultAsync();
             if (property == null)
             {
