@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Reposatiory;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ using ViewModels;
 namespace Lofty.Controllers
 {
     /// <summary>
-    /// Property apis
+    /// Property APIs
     /// </summary>
     /// <param name="_propertyManager"></param>
     public class PropertyController(PropertyManager _propertyManager) : ControllerBase
@@ -104,8 +105,19 @@ namespace Lofty.Controllers
         {
             if (ModelState.IsValid)
             {
-                Claim userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-                string userId = userIdClaim.Value;
+                string userId = null;
+                if (User != null)
+                {
+                    if (User.Identity.IsAuthenticated)
+                    {
+                        Claim userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                        if (userIdClaim != null)
+                        {
+                            userId = userIdClaim.Value; 
+                        }
+                    }
+                }
+                
                 APIResult<PropertyDetailsViewModelForUser> result = await propertyManager.GetPropertyDetailsByIdForUserAsync(PropertyId, userId);
                 return new JsonResult(result)
                 {
@@ -127,6 +139,7 @@ namespace Lofty.Controllers
         /// </summary>
         /// <param name="PropertyId"></param>
         /// <returns></returns>
+        [Authorize(Roles = "Customer")]
         [HttpGet("api/Property/GetOrderingPage")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<OrderingPageViewModel>))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(APIResult<OrderingPageViewModel>))]
@@ -160,6 +173,7 @@ namespace Lofty.Controllers
         /// <param name="PropertyId"></param>
         /// <param name="NumberOfShares"></param>
         /// <returns></returns>
+        [Authorize(Roles = "Customer")]
         [HttpGet("api/Property/GetOrderPreviewPage")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<OrderPreviewPageViewModel>))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(APIResult<OrderPreviewPageViewModel>))]

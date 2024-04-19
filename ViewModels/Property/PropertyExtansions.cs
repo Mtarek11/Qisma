@@ -59,7 +59,7 @@ namespace ViewModels
                 TransactionFees = property.TransactionFees,
                 TransactionFeesNumerical = property.TransactionFees != null ? property.TransactionFees * property.PropertyUnitPrices.Where(i => i.To == null).Select(i => i.UnitPrice).FirstOrDefault() : null,
                 Description = property.Description,
-                AnnualPriceAppreciation = property.AnnualPriceAppreciation,
+                AnnualPriceAppreciation = property.AnnualPriceAppreciation, 
                 AnnualRentalYield = property.PropertyRentalYields.Where(i => i.To == null).Select(i => i.RentalYield).FirstOrDefault(),
                 AvailableShares = property.AvailableShares,
                 City = property.City.NameEn,

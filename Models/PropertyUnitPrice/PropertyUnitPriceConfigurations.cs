@@ -19,6 +19,8 @@ namespace Models
             builder.Property(i => i.From).IsRequired(true);
             builder.Property(i => i.To).IsRequired(false);
             builder.HasOne(i => i.Property).WithMany(i => i.PropertyUnitPrices).HasForeignKey(i => i.PropertyId).OnDelete(DeleteBehavior.Cascade).IsRequired(true);
+            builder.HasIndex(i => new { i.PropertyId, i.To }).IsUnique();
+            builder.HasIndex(i => i.UnitPrice);
         }
     }
 }

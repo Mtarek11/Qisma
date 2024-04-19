@@ -19,6 +19,7 @@ namespace Models
             builder.Property(i => i.NameEn).IsRequired(true);
             builder.HasOne(c => c.Governorate).WithMany(g => g.Cities).HasForeignKey(c => c.GovernorateId).OnDelete(DeleteBehavior.Cascade).IsRequired(true);
             builder.HasIndex(i => i.GovernorateId);
+            builder.HasIndex(i => new { i.Id, i.GovernorateId }).IsUnique();
         }
     }
 }

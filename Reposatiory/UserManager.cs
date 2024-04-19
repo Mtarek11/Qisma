@@ -16,7 +16,7 @@ using ViewModels;
 
 namespace Reposatiory
 {
-    public class AccountManager(LoftyContext _mydB, UserManager<User> _userManager, IConfiguration _configuration) : MainManager<User>(_mydB)
+    public class UserManager(LoftyContext _mydB, UserManager<User> _userManager, IConfiguration _configuration) : MainManager<User>(_mydB)
     {
         private readonly UserManager<User> userManager = _userManager;
         private readonly IConfiguration configuration = _configuration;
@@ -160,6 +160,11 @@ namespace Reposatiory
                 APIResult.StatusCode = 401;
                 return APIResult;
             }
+        }
+        public async Task<UserFullInformationViewModel> GetUserFullInformationsAsync(string userId)
+        {
+            UserFullInformationViewModel userInformations = await GetAll().Where(i => i.Id == userId).Select(UserExtansions.ToUserFullInformationViewModelExpression()).FirstOrDefaultAsync();
+            return userInformations;
         }
     }
 }

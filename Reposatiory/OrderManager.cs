@@ -14,19 +14,19 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 namespace Reposatiory
 {
     public class OrderManager(LoftyContext _mydB, UnitOfWork _unitOfWork, BuyTrackerManager _buyTrackerManager, PropertyManager _propertyManager,
-        AccountManager _accountManager) : MainManager<Order>(_mydB)
+        UserManager _accountManager) : MainManager<Order>(_mydB)
     {
         private readonly UnitOfWork unitOfWork = _unitOfWork;
         private readonly BuyTrackerManager buyTrackerManager = _buyTrackerManager;
         private readonly PropertyManager propertyManager = _propertyManager;
-        private readonly AccountManager accountManager = _accountManager;
+        private readonly UserManager accountManager = _accountManager;
         public async Task<APIResult<string>> CreateOrderAsync(string userId, string propertyId, int numberOfShares)
         {
             APIResult<string> aPIResult = new();
             BuyTracker buyTracker = await buyTrackerManager.GetAll().Where(i => i.UserId == userId && i.PropertyId == propertyId).Select(i => new BuyTracker()
             {
                 PropertyId = i.PropertyId,
-                UserId = i.UserId,
+                UserId = i.UserId,  
                 LastProceedDate = i.LastProceedDate,
             }).FirstOrDefaultAsync();
             if (buyTracker == null)
@@ -98,7 +98,7 @@ namespace Reposatiory
                 Order order = new()
                 {
                     UserId = userId,
-                    OrderNumber = propertyId + user.FirstName.First() + user.LastName.Last() + user.DateOfBirth.Day.ToString() + user.DateOfBirth.Month,
+                    OrderNumber = "Temp",
                     PropertyId = propertyId,
                     SharePrice = property.SharePrice,
                     NumberOfShares = numberOfShares,
@@ -113,6 +113,9 @@ namespace Reposatiory
                 };
                 await AddAsync(order);
                 await unitOfWork.CommitAsync();
+                order.OrderNumber = propertyId + order.Id + user.FirstName.First() + user.LastName.Last() + user.DateOfBirth.Day.ToString() + user.DateOfBirth.Month;
+                Update(order);
+                await unitOfWork.CommitAsync();
                 using (var client = new SmtpClient("smtp.gmail.com", 587))
                 {
                     client.UseDefaultCredentials = false;
@@ -121,31 +124,32 @@ namespace Reposatiory
                     MailAddress from = new MailAddress("mohamedtarek70m@gmail.com");
                     MailAddress to = new MailAddress(user.Email);
                     string subject = $"Your Order Confirmation - {property.Location} Fractional Ownership";
-                    string body = $@"<html>
-<head>
-<style>
-.bold {{
-    font-weight: bold;
-}}
-</style>
-</head>
-<body>
-Hello {user.FirstName} {user.LastName},<br>
-Thank you for choosing Qisma for your investment in {property.Location}. We’re pleased to confirm that your purchase of fractional shares has been processed successfully.<br>
-Someone from our customer service department will contact you shortly to walk you through the next steps. <br><br>
-<span class='bold'>Here are the details of your investment:</span><br>
-Property Name: {property.Location}<br>
-Fractional Shares Purchased: {order.NumberOfShares}<br>
-Total Investment: {(order.NumberOfShares * order.SharePrice).ToString("F2")}<br>
-First Payment: {order.DownPayment?.ToString("F2")}<br>
-Transaction ID: {order.OrderNumber}<br><br>
-You are kindly required to complete the first payment, {order.DownPayment?.ToString("F2")} EGP, within 48 hours. If payment is done through bank transfer or Instapay, please send a proof of payment to billing@qisma.co<br><br>
-We’ve attached the order confirmation form to this email for your records. If you have any questions or if there’s anything else you need, please contact our support team. <br><br>
-We’re here to help!<br>
-Thanks again for your trust,<br><br>
-QISMA
-</body>
-</html>";
+                    string body =
+                        $@"<html>
+                            <head>
+                             <style>
+                             .bold {{
+                                      font-weight: bold;
+                                    }}
+                             </style>
+                            </head>
+                            <body>
+                            Hello {user.FirstName} {user.LastName},<br>
+                            Thank you for choosing Qisma for your investment in {property.Location}. We’re pleased to confirm that your purchase of fractional shares has been processed successfully.<br>
+                            Someone from our customer service department will contact you shortly to walk you through the next steps. <br><br>
+                            <span class='bold'>Here are the details of your investment:</span><br>
+                            Property Name: {property.Location}<br>
+                            Fractional Shares Purchased: {order.NumberOfShares}<br>
+                            Total Investment: {(order.NumberOfShares * order.SharePrice).ToString("F2")}<br>
+                            First Payment: {order.DownPayment?.ToString("F2")}<br>
+                            Transaction ID: {order.OrderNumber}<br><br>
+                            You are kindly required to complete the first payment, {order.DownPayment?.ToString("F2")} EGP, within 48 hours. If payment is done through bank transfer or Instapay, please send a proof of payment to billing@qisma.co<br><br>
+                            We’ve attached the order confirmation form to this email for your records. If you have any questions or if there’s anything else you need, please contact our support team. <br><br>
+                            We’re here to help!<br>
+                            Thanks again for your trust,<br><br>
+                            QISMA
+                            </body>
+                           </html>";
                     MailMessage message = new MailMessage(from, to)
                     {
                         Subject = subject,
@@ -154,6 +158,7 @@ QISMA
                     };
                     client.Send(message);
                 }
+                aPIResult.Data = order.OrderNumber;
                 aPIResult.Message = "Order placed";
                 aPIResult.StatusCode = 200;
                 aPIResult.IsSucceed = false;
@@ -165,7 +170,7 @@ QISMA
             List<Order> orders = await GetAll().Where(i => i.OrderDate.AddDays(2) < DateTime.Now && i.OrderStatus == OrderStatus.Pending).Select(i => new Order()
             {
                 Id = i.Id,
-                Property = new Property()
+                Property = new Property() 
                 {
                     Id = i.Property.Id,
                     UsedShares = i.Property.UsedShares,
@@ -185,16 +190,33 @@ QISMA
                 await unitOfWork.CommitAsync();
             }
         }
-        public async Task<PaginationViewModel<OrderViewModelForAdmin>> GetAllOrdersForAdminAsync(int pageNumber, int pageSize, OrderStatus orderStatus)
+        public async Task<PaginationViewModel<OrderViewModelForAdmin>> GetAllOrdersForAdminAsync(int pageNumber, int pageSize, OrderStatus? orderStatus)
         {
             int itemsToSkip = pageNumber * pageSize;
             int totalPageNumbers = 0;
             int totalItemsNumber = 0;
-            List<OrderViewModelForAdmin> Orders = await GetAll().Where(i => i.OrderStatus == orderStatus).Select(OrderExtansions.ToOrderDetailsViewModelForAdminExpression())
+            List<OrderViewModelForAdmin> Orders = new List<OrderViewModelForAdmin>();
+            if (orderStatus == null)
+            {
+                 Orders = await GetAll().OrderBy(i => i.Id).Select(OrderExtansions.ToOrderDetailsViewModelForAdminExpression())
                 .Skip(itemsToSkip).Take(pageSize).ToListAsync();
+            }
+            else
+            {
+                 Orders = await GetAll().Where(i => i.OrderStatus == orderStatus).OrderBy(i => i.Id).Select(OrderExtansions.ToOrderDetailsViewModelForAdminExpression())
+                .Skip(itemsToSkip).Take(pageSize).ToListAsync();
+            }
             if (Orders.Count > 0)
             {
-                int totalItems = await GetAll().Where(i => i.OrderStatus == orderStatus).CountAsync();
+                int totalItems = 0;
+                if (orderStatus == null)
+                {
+                    totalItems = await GetAll().CountAsync(); 
+                }
+                else
+                {
+                    totalItems = await GetAll().Where(i => i.OrderStatus == orderStatus).CountAsync();
+                }
                 totalItemsNumber = totalItems;
                 totalPageNumbers = (int)Math.Ceiling((double)totalItems / pageSize);
             }
@@ -251,17 +273,35 @@ QISMA
                 return aPIResult;
             }
         }
-        public async Task<PaginationViewModel<OrderViewModelForUser>> GetAllOrdersForUserAsync(int pageNumber, int pageSize, string userId, OrderStatus orderStatus)
+        public async Task<PaginationViewModel<OrderViewModelForUser>> GetAllOrdersForUserAsync(int pageNumber, int pageSize, string userId, OrderStatus? orderStatus)
         {
             int itemsToSkip = pageNumber * pageSize;
             int totalPageNumbers = 0;
             int totalItemsNumber = 0;
-            List<OrderViewModelForUser> Orders = await GetAll().Where(i => i.OrderStatus == orderStatus && i.UserId == userId)
+            List<OrderViewModelForUser> Orders = new List<OrderViewModelForUser>();
+            if (orderStatus == null)
+            {
+                 Orders = await GetAll().OrderBy(i => i.Id).Where(i => i.UserId == userId)
                 .Select(OrderExtansions.ToOrderDetailsViewModelForUserExpression())
                 .Skip(itemsToSkip).Take(pageSize).ToListAsync();
+            }
+            else
+            {
+                 Orders = await GetAll().OrderBy(i => i.Id).Where(i => i.OrderStatus == orderStatus && i.UserId == userId)
+                .Select(OrderExtansions.ToOrderDetailsViewModelForUserExpression())
+                .Skip(itemsToSkip).Take(pageSize).ToListAsync();
+            }
             if (Orders.Count > 0)
             {
-                int totalItems = await GetAll().Where(i => i.OrderStatus == orderStatus && i.UserId == userId).CountAsync();
+                int totalItems = 0;
+                if (orderStatus == null)
+                {
+                    totalItems = await GetAll().Where(i => i.UserId == userId).CountAsync();
+                }
+                else
+                {
+                    totalItems = await GetAll().Where(i => i.OrderStatus == orderStatus && i.UserId == userId).CountAsync();
+                }
                 totalItemsNumber = totalItems;
                 totalPageNumbers = (int)Math.Ceiling((double)totalItems / pageSize);
             }

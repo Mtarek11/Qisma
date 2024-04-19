@@ -18,11 +18,12 @@ namespace ViewModels
         public DateTime DateOfBirth { get; set; }
         public string Address { get; set; }
         public string IdentityNumber { get; set; }
-        public string IdentityImageUrl { get; set; }
+        public string IdentityImageUrl { get; set; } 
         public string Occupation { get; set; }
         public string CompanyName { get; set; }
         public InvestorType InvestorType { get; set; }
         public string PhoneNumber { get; set; }
         public string Email { get; set; }
+        public InvestorType InvestoreType { get; set; }
     }
 }

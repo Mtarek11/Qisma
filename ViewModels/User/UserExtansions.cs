@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ViewModels
 {
-    public static class AccountExtansions
+    public static class UserExtansions
     {
         public static User ToUserModel(this UserSignUpViewModel viewModel)
         {
@@ -29,15 +29,15 @@ namespace ViewModels
                 ReciveEmails = viewModel.ReciveEmails,
             };
         }
-        public static UserFullInformationViewModel ToUserInformationViewModel(this User user)
+        public static Expression<Func<User, UserFullInformationViewModel>> ToUserFullInformationViewModelExpression()
         {
-            return new UserFullInformationViewModel()
+            return user => new UserFullInformationViewModel()
             {
                 Address = user.Address,
                 CompanyName = user.CompanyName,
                 DateOfBirth = user.DateOfBirth,
                 Email = user.Email,
-                FirstName = user.FirstName,
+                FirstName = user.FirstName, 
                 IdentityImageUrl = user.IdentityImageUrl,
                 IdentityNumber = user.IdentityNumber,
                 InvestorType = user.InvestoreType,
@@ -45,7 +45,8 @@ namespace ViewModels
                 MiddleName = user.MiddleName,
                 Occupation = user.Occupation,
                 PhoneNumber = user.PhoneNumber,
-                UserId = user.Id
+                UserId = user.Id,
+                InvestoreType = user.InvestoreType
             };
         }
     }

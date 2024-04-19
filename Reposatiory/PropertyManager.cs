@@ -26,14 +26,14 @@ namespace Reposatiory
             APIResult<string> aPIResult = new APIResult<string>();
             bool checkCity = await cityManager.CheckCityAsync(viewModel.CityId, viewModel.GovernorateId);
             if (!checkCity)
-            {
+            { 
                 aPIResult.Message = "City must be inside the governorate";
                 aPIResult.IsSucceed = false;
                 aPIResult.StatusCode = 400;
                 return aPIResult;
             }
             Models.Property property = viewModel.ToPropertyModel();
-            PropertyUnitPrice propertyUnitPrice = new()
+            PropertyUnitPrice propertyUnitPrice = new() 
             {
                 From = DateTime.Now,
                 UnitPrice = viewModel.UnitPrice
@@ -45,8 +45,8 @@ namespace Reposatiory
             };
             property.PropertyUnitPrices.Add(propertyUnitPrice);
             property.PropertyRentalYields.Add(propertyRentalYield);
-            char randomChar1 = (char)new Random().Next('A', 'Z' + 1);
-            char randomChar2 = (char)new Random().Next('A', 'Z' + 1);
+            char randomChar1 = (char)('A' + new Random().Next(26));
+            char randomChar2 = (char)('A' + new Random().Next(26));
             int randomNumber = new Random().Next(100000, 999999);
             string guid = randomChar1 + randomChar2 + randomNumber.ToString();
             property.Id = guid;
@@ -93,7 +93,7 @@ namespace Reposatiory
                 PartialUpdate(property);
                 bool isUpdated = false;
                 if (viewModel.AnnualRentalYield != null)
-                {
+                { 
                     PropertyRentalYield propertyRentalYield = await propertyRentalYieldManager.GetAll().Where(i => i.PropertyId == viewModel.PropertyId && i.To == null)
                        .Select(i => new PropertyRentalYield()
                        {
@@ -149,7 +149,7 @@ namespace Reposatiory
                     PropertyUnitPrice propertyUnitPrice = await propertyUnitPriceManager.GetAll().Where(i => i.PropertyId == viewModel.PropertyId && i.To == null)
                         .Select(i => new PropertyUnitPrice()
                         {
-                            Id = i.Id,
+                            Id = i.Id, 
                             To = i.To,
                         }).FirstOrDefaultAsync();
                     propertyUnitPriceManager.PartialUpdate(propertyUnitPrice);
@@ -308,7 +308,7 @@ namespace Reposatiory
             {
                 query = query.Where(i => i.SharePrice <= maxSharePrice);
             }
-            List<PropertyViewModelInListView> properties = await query.Select(PropertyExtansions.ToPropertyViewModelInListExpression(isAdmin)).Skip(itemsToSkip).Take(pageSize).ToListAsync();
+            List<PropertyViewModelInListView> properties = await query.OrderBy(i => i.Id).Select(PropertyExtansions.ToPropertyViewModelInListExpression(isAdmin)).Skip(itemsToSkip).Take(pageSize).ToListAsync();
             if (properties.Count > 0)
             {  
                 int totalItems = await query.CountAsync();
@@ -328,12 +328,12 @@ namespace Reposatiory
             APIResult<PropertyDetailsViewModelForUser> aPIResult = new();
             PropertyDetailsViewModelForUser property = await GetAll().Where(i => i.Id == propertyId && i.IsDeleted == false)
                 .Select(PropertyExtansions.ToPropertyDetailsViewModelForUserExpression()).FirstOrDefaultAsync();
-            if (property != null)
+            if (property != null && userId != null)
             { 
                 bool buyerTracker = await buyTrackerManager.ProceedWithBuyAsync(userId, propertyId);
                 if (buyerTracker)
                 {
-                    aPIResult.Data = property;
+                    aPIResult.Data = property;  
                     aPIResult.IsSucceed = true;
                     aPIResult.StatusCode = 200;
                     aPIResult.Message = "Get property details";
@@ -406,8 +406,8 @@ namespace Reposatiory
             APIResult<OrderingPageViewModel> aPIResult = new();
             BuyTracker buyTracker = await buyTrackerManager.GetAll().Where(i => i.UserId == userId && i.PropertyId == propertyId).Select(i => new BuyTracker()
             {
-                PropertyId = i.PropertyId,
-                UserId = i.UserId,
+                PropertyId = i.PropertyId, 
+                UserId = i.UserId, 
                 LastProceedDate = i.LastProceedDate,
             }).FirstOrDefaultAsync();
             if (buyTracker == null)
@@ -430,7 +430,11 @@ namespace Reposatiory
                 MaintenaceInstallment = i.MaintenaceInstallment,
                 DeliveryInstallment = i.DeliveryInstallment,
                 LastModificationDate = i.LastModificationDate,
-                NumberOfShares = i.NumberOfShares
+                NumberOfShares = i.NumberOfShares,
+                PropertyUnitPrices = i.PropertyUnitPrices.Where(i => i.To == null).Select(P => new PropertyUnitPrice()
+                {
+                    UnitPrice = P.UnitPrice
+                }).ToList()
             }).FirstOrDefaultAsync();
             if (property == null)
             {
@@ -450,13 +454,13 @@ namespace Reposatiory
             {
                 PropertyId = property.Id,
                 SharePrice = property.SharePrice,
-                TransactionFees = property.TransactionFees != null ? property.TransactionFees / property.NumberOfShares : null,
+                TransactionFees = property.TransactionFees != null ? (property.TransactionFees * property.PropertyUnitPrices.Select(i => i.UnitPrice).FirstOrDefault()) / property.NumberOfShares : null,
                 AvailableShares = property.AvailableShares,
                 MinNumberOfShares = property.MinOfShares,
                 DownPayment = property.DownPayment,
                 MonthlyInstallment = property.MonthlyInstallment,
                 NumberOfYears = property.NumberOfYears,
-                MaintenaceInstallment = property.MaintenanceCost,
+                MaintenaceInstallment = property.MaintenaceInstallment,
                 DeliveryInstallment = property.DeliveryInstallment,
             };
             aPIResult.Data = orderingPage;
@@ -513,6 +517,11 @@ namespace Reposatiory
                 MaintenaceInstallment = i.MaintenaceInstallment,
                 DeliveryInstallment = i.DeliveryInstallment,
                 LastModificationDate = i.LastModificationDate,
+                NumberOfShares = i.NumberOfShares,
+                PropertyUnitPrices = i.PropertyUnitPrices.Where(i => i.To == null).Select(P => new PropertyUnitPrice()
+                {
+                    UnitPrice = P.UnitPrice
+                }).ToList()
             }).FirstOrDefaultAsync();
             if (property == null)
             {
@@ -532,13 +541,14 @@ namespace Reposatiory
             {
                 PropertyId = property.Id,
                 SharePrice = property.SharePrice,
-                TransactionFees = property.TransactionFees != null ? (property.TransactionFees / property.NumberOfShares) * numberOfshares : null,
+                TransactionFees = property.TransactionFees != null ?
+                ((property.TransactionFees * property.PropertyUnitPrices.Select(i => i.UnitPrice).FirstOrDefault()) / property.NumberOfShares) * numberOfshares : null,
                 AvailableShares = property.AvailableShares,
                 MinNumberOfShares = property.MinOfShares,
                 DownPayment = property.DownPayment / numberOfshares,
                 MonthlyInstallment = property.MonthlyInstallment / numberOfshares,
                 NumberOfYears = property.NumberOfYears,
-                MaintenaceInstallment = property.MaintenanceCost / numberOfshares,
+                MaintenaceInstallment = property.MaintenaceInstallment / numberOfshares,
                 DeliveryInstallment = property.DeliveryInstallment / numberOfshares,
             };
             UserInformationForOrderPreviewViewModel userInformation = new()

@@ -8,7 +8,7 @@ using ViewModels;
 namespace Lofty.Controllers
 {
     /// <summary>
-    /// Governorate and city apis
+    /// Governorate and city APIs
     /// </summary>
     public class GovernorateAndCityController(GovernorateManager _governorateManager, CityManager _cityManager) : ControllerBase
     { 

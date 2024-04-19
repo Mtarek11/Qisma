@@ -29,6 +29,7 @@ namespace Models
             builder.Property(i => i.ConfirmationDate).IsRequired(false);
             builder.HasIndex(i => new { i.OrderDate, i.OrderStatus });
             builder.HasIndex(i => i.OrderStatus );
+            builder.HasIndex(i => i.UserId);
             builder.HasIndex(i => new { i.UserId, i.OrderStatus });
             builder.HasOne(i => i.Property).WithMany(i => i.Orders).HasForeignKey(i => i.PropertyId).OnDelete(DeleteBehavior.Cascade).IsRequired(true);
             builder.HasOne(i => i.User).WithMany(i => i.Orders).HasForeignKey(i => i.UserId).OnDelete(DeleteBehavior.Cascade).IsRequired(true);

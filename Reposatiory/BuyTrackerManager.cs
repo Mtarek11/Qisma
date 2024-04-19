@@ -19,7 +19,7 @@ namespace Reposatiory
             BuyTracker buyTracker = await GetAll().Where(i => i.UserId == userId && i.PropertyId == propertyId).Select(i => new BuyTracker()
             {
                 PropertyId = i.PropertyId,
-                UserId = i.UserId,
+                UserId = i.UserId, 
                 LastProceedDate = i.LastProceedDate,
             }).FirstOrDefaultAsync();
             if (buyTracker != null)

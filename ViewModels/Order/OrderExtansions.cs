@@ -14,50 +14,87 @@ namespace ViewModels
         {
             return i => new OrderViewModelForAdmin()
             {
-                OrderFinancialDetails = i.ToOrderFinancialDetailsViewModel(),
-                Property = i.Property.ToPropertyViewModelInOrderView(),
-                UserInformation = i.User.ToUserInformationViewModel(),
+                OrderFinancialDetails = new OrderFinancialDetailsViewModel()
+                {
+                    OrderId = i.Id,
+                    SharePrice = i.SharePrice,
+                    NumberOfShares = i.NumberOfShares,
+                    ConfirmationDate = i.ConfirmationDate,
+                    DeliveryInstallment = i.DeliveryInstallment,
+                    DownPayment = i.DownPayment,
+                    MaintenaceInstallment = i.MaintenaceInstallment,
+                    MonthlyInstallment = i.MonthlyInstallment,
+                    NumberOfYears = i.NumberOfYears,
+                    OrderDate = i.OrderDate,
+                    OrderNumber = i.OrderNumber,
+                    TransactionFees = i.TransactionFees,
+                },
+                Property = new PropertyViewModelInListView()
+                {
+                    Address = i.Property.Location,
+                    ProjectedRentalYield = i.Property.PropertyRentalYields.Where(i => i.To == null).Select(i => i.RentalYield).FirstOrDefault(),
+                    ProjectedAnnualReturn = i.Property.PropertyRentalYields.Where(i => i.To == null).Select(i => i.RentalYield).FirstOrDefault() + i.Property.AnnualPriceAppreciation,
+                    City = i.Property.City.NameEn,
+                    ImageUrl = i.Property.PropertyImages.Select(image => image.ImageUrl).FirstOrDefault(),
+                    PropertyId = i.Property.Id,
+                    AvailableTokens = i.Property.AvailableShares,
+                    TokenPrice = i.Property.SharePrice,
+                    IsDeleted = i.Property.IsDeleted
+                },
+                UserInformation = new UserFullInformationViewModel()
+                {
+                    Address = i.User.Address,
+                    CompanyName = i.User.CompanyName,
+                    DateOfBirth = i.User.DateOfBirth,
+                    Email = i.User.Email,
+                    FirstName = i.User.FirstName,
+                    IdentityImageUrl = i.User.IdentityImageUrl,
+                    IdentityNumber = i.User.IdentityNumber,
+                    InvestorType = i.User.InvestoreType,
+                    LastName = i.User.LastName,
+                    MiddleName = i.User.MiddleName,
+                    Occupation = i.User.Occupation,
+                    PhoneNumber = i.User.PhoneNumber,
+                    UserId = i.User.Id,
+                    InvestoreType = i.User.InvestoreType
+                },
+                OrderStatus = i.OrderStatus,
+                OrderStatusName = i.OrderStatus == OrderStatus.Pending ? "Pending" : "Confirmed"
             };
         }
         public static Expression<Func<Order, OrderViewModelForUser>> ToOrderDetailsViewModelForUserExpression()
         {
             return i => new OrderViewModelForUser()
             {
-                OrderFinancialDetails = i.ToOrderFinancialDetailsViewModel(),
-                Property = i.Property.ToPropertyViewModelInOrderView(),
-            };
-        }
-        public static OrderFinancialDetailsViewModel ToOrderFinancialDetailsViewModel(this Order order)
-        {
-            return new OrderFinancialDetailsViewModel()
-            {
-                OrderId = order.Id,
-                SharePrice = order.SharePrice,
-                NumberOfShares = order.NumberOfShares,
-                ConfirmationDate = order.ConfirmationDate,
-                DeliveryInstallment = order.DeliveryInstallment,
-                DownPayment = order.DownPayment,
-                MaintenaceInstallment = order.MaintenaceInstallment,
-                MonthlyInstallment = order.MonthlyInstallment,
-                NumberOfYears = order.NumberOfYears,
-                OrderDate = order.OrderDate,
-                OrderNumber = order.OrderNumber,
-                TransactionFees = order.TransactionFees,
-            };
-        }
-        public static PropertyViewModelInListView ToPropertyViewModelInOrderView(this Property property)
-        {
-            return new PropertyViewModelInListView()
-            {
-                Address = property.Location,
-                ProjectedRentalYield = property.PropertyRentalYields.Where(i => i.To == null).Select(i => i.RentalYield).FirstOrDefault(),
-                ProjectedAnnualReturn = property.PropertyRentalYields.Where(i => i.To == null).Select(i => i.RentalYield).FirstOrDefault() + property.AnnualPriceAppreciation,
-                City = property.City.NameEn,
-                ImageUrl = property.PropertyImages.Select(image => image.ImageUrl).FirstOrDefault(),
-                PropertyId = property.Id,
-                AvailableTokens = property.AvailableShares,
-                TokenPrice = property.SharePrice,
-                IsDeleted = null
+                OrderFinancialDetails = new OrderFinancialDetailsViewModel()
+                {
+                    OrderId = i.Id,
+                    SharePrice = i.SharePrice,
+                    NumberOfShares = i.NumberOfShares,
+                    ConfirmationDate = i.ConfirmationDate,
+                    DeliveryInstallment = i.DeliveryInstallment,
+                    DownPayment = i.DownPayment,
+                    MaintenaceInstallment = i.MaintenaceInstallment,
+                    MonthlyInstallment = i.MonthlyInstallment,
+                    NumberOfYears = i.NumberOfYears,
+                    OrderDate = i.OrderDate,
+                    OrderNumber = i.OrderNumber,
+                    TransactionFees = i.TransactionFees,
+                },
+                Property = new PropertyViewModelInListView()
+                {
+                    Address = i.Property.Location,
+                    ProjectedRentalYield = i.Property.PropertyRentalYields.Where(i => i.To == null).Select(i => i.RentalYield).FirstOrDefault(),
+                    ProjectedAnnualReturn = i.Property.PropertyRentalYields.Where(i => i.To == null).Select(i => i.RentalYield).FirstOrDefault() + i.Property.AnnualPriceAppreciation,
+                    City = i.Property.City.NameEn,
+                    ImageUrl = i.Property.PropertyImages.Select(image => image.ImageUrl).FirstOrDefault(),
+                    PropertyId = i.Property.Id,
+                    AvailableTokens = i.Property.AvailableShares,
+                    TokenPrice = i.Property.SharePrice,
+                    IsDeleted = null
+                },
+                OrderStatus = i.OrderStatus,
+                OrderStatusName = i.OrderStatus == OrderStatus.Pending ? "Pending" : "Confirmed"
             };
         }
     }

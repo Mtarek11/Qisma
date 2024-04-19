@@ -64,7 +64,7 @@ namespace Lofty.Controllers
         [HttpGet("api/Dashboard/Order/GetAll")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<PaginationViewModel<OrderViewModelForAdmin>>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
-        public async Task<IActionResult> GetAllPendingOrdersAsync([FromQuery, Required] OrderStatus OrderStatus, [FromQuery, Required] int PageNumber = 0, [FromQuery, Required] int PageSize = 10)
+        public async Task<IActionResult> GetAllOrdersAsync([FromQuery] OrderStatus? OrderStatus, [FromQuery, Required] int PageNumber = 0, [FromQuery, Required] int PageSize = 10)
         {
             if (ModelState.IsValid)
             {
@@ -141,7 +141,7 @@ namespace Lofty.Controllers
         [HttpGet("api/Order/GetAll")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<PaginationViewModel<OrderViewModelForUser>>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
-        public async Task<IActionResult> GetAllUserPendingOrdersAsync([FromQuery, Required] OrderStatus OrderStatus, [FromQuery, Required] int PageNumber = 0, [FromQuery, Required] int PageSize = 10)
+        public async Task<IActionResult> GetAllUserOrdersAsync([FromQuery] OrderStatus? OrderStatus, [FromQuery, Required] int PageNumber = 0, [FromQuery, Required] int PageSize = 10)
         {
             if (ModelState.IsValid)
             {

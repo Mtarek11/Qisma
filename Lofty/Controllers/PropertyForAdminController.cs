@@ -11,7 +11,7 @@ using ViewModels;
 namespace Lofty.Controllers
 {
     /// <summary>
-    /// Property apis for admin
+    /// Property APIs for admin
     /// </summary>
     /// <param name="_propertyManager"></param>
     /// <param name="_facilityManager"></param>
@@ -39,7 +39,7 @@ namespace Lofty.Controllers
             {
                 APIResult<string> result = await propertyManager.AddNewPropertyAsync(viewModel);
                 return new JsonResult(result)
-                {
+                {  
                     StatusCode = result.StatusCode
                 };
             }

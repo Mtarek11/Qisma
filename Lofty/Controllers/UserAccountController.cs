@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Reposatiory;
 using System.Linq;
@@ -9,12 +10,12 @@ using ViewModels;
 namespace Lofty.Controllers
 {
     /// <summary>
-    /// User account apis
+    /// User APIs
     /// </summary>
     /// <param name="_accountManager"></param>
-    public class UserAccountController(AccountManager _accountManager) : ControllerBase
+    public class UserAccountController(UserManager _accountManager) : ControllerBase
     {
-        private readonly AccountManager accountManager = _accountManager;
+        private readonly UserManager accountManager = _accountManager;
         /// <summary>
         /// Sign up for customers ==> InvestoreType 1- Retail 2- Institutional
         /// </summary>
@@ -68,6 +69,39 @@ namespace Lofty.Controllers
                     Message = string.Join("; ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage)),
                     IsSucceed = false,
                     StatusCode = 401
+                });
+            }
+        }
+        /// <summary>
+        /// User full informations 
+        /// </summary>
+        /// <returns></returns>
+        [Authorize(Roles = "Customer")]
+        [HttpGet("api/User/GetFullInformation")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<UserFullInformationViewModel>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(APIResult<string>))]
+        public async Task<IActionResult> GetUserFullInformationsAsync()
+        {
+            Claim userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            string userId = userIdClaim.Value;
+            UserFullInformationViewModel userInformations = await accountManager.GetUserFullInformationsAsync(userId);
+            if (userInformations != null)
+            {
+                return Ok(new APIResult<UserFullInformationViewModel>()
+                {
+                    Data = userInformations,
+                    StatusCode = 200,
+                    IsSucceed = true,
+                    Message = "User full informations"
+                });
+            }
+            else
+            {
+                return Unauthorized(new APIResult<string>()
+                {
+                    StatusCode = 401,
+                    IsSucceed = false,
+                    Message = "User not found"
                 });
             }
         }
