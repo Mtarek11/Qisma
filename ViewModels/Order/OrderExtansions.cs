@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ViewModels
-{
+{ 
     public static class OrderExtansions
     {
         public static Expression<Func<Order, OrderViewModelForAdmin>> ToOrderDetailsViewModelForAdminExpression()
@@ -50,16 +50,17 @@ namespace ViewModels
                     FirstName = i.User.FirstName,
                     IdentityImageUrl = i.User.IdentityImageUrl,
                     IdentityNumber = i.User.IdentityNumber,
-                    InvestorType = i.User.InvestoreType,
+                    InvestorTypeId = i.User.InvestoreType,
+                    InvestorType = i.User.InvestoreType == InvestorType.Institutional ? "Institutional" : "Retail",    
                     LastName = i.User.LastName,
                     MiddleName = i.User.MiddleName,
                     Occupation = i.User.Occupation,
                     PhoneNumber = i.User.PhoneNumber,
                     UserId = i.User.Id,
-                    InvestoreType = i.User.InvestoreType
                 },
                 OrderStatus = i.OrderStatus,
-                OrderStatusName = i.OrderStatus == OrderStatus.Pending ? "Pending" : "Confirmed"
+                OrderStatusName = i.OrderStatus == OrderStatus.Pending ? "Pending" : "Confirmed",
+                OrderPdfUrl = $"{i.OrderNumber}.pdf"
             };
         }
         public static Expression<Func<Order, OrderViewModelForUser>> ToOrderDetailsViewModelForUserExpression()
@@ -94,7 +95,8 @@ namespace ViewModels
                     IsDeleted = null
                 },
                 OrderStatus = i.OrderStatus,
-                OrderStatusName = i.OrderStatus == OrderStatus.Pending ? "Pending" : "Confirmed"
+                OrderStatusName = i.OrderStatus == OrderStatus.Pending ? "Pending" : "Confirmed",
+                OrderPdfUrl = $"{i.OrderNumber}.pdf"
             };
         }
     }

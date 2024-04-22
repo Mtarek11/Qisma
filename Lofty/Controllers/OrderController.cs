@@ -31,6 +31,7 @@ namespace Lofty.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(APIResult<string>))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<string>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
+        [System.Obsolete]
         public async Task<IActionResult> PlaceOrderAsync([Required, FromQuery] string PropertyId, [Required, FromQuery] int NumberOfShares)
         {
             if (ModelState.IsValid)
@@ -103,6 +104,7 @@ namespace Lofty.Controllers
         /// Confirm order payment
         /// </summary>
         /// <param name="OrderId"></param>
+        /// <param name="ConfirmedOrRejected"></param>
         /// <returns></returns>
         [Authorize(Roles ="Admin")]
         [HttpPost("api/Dashboard/Orders/ConfirmOrder")]
@@ -110,11 +112,11 @@ namespace Lofty.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(APIResult<string>))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<string>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
-        public async Task<IActionResult> ConfirmOrderAsync([FromQuery, Required] int OrderId)
+        public async Task<IActionResult> ConfirmOrderAsync([FromQuery, Required] int OrderId, [FromQuery, Required] bool ConfirmedOrRejected)
         {
             if (ModelState.IsValid)
             {
-                APIResult<string> result = await orderManager.ConfirmOrderPaymentAsync(OrderId);
+                APIResult<string> result = await orderManager.ConfirmOrRejectOrderPaymentAsync(OrderId, ConfirmedOrRejected);
                 return new JsonResult(result)
                 {
                     StatusCode = result.StatusCode
@@ -137,7 +139,7 @@ namespace Lofty.Controllers
         /// <param name="PageSize"></param>
         /// <param name="OrderStatus"></param>
         /// <returns></returns>
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Customer")]
         [HttpGet("api/Order/GetAll")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<PaginationViewModel<OrderViewModelForUser>>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]

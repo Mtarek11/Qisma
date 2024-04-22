@@ -21,6 +21,7 @@ namespace Models
         public DbSet<Order> Orders {  get; set; }
         public DbSet<PropertyUnitPrice> PropertyUnitPrices {  get; set; }
         public DbSet<PropertyRentalYield> PropertyRentalYields {  get; set; }
+        public DbSet<AboutQisma> AboutQisma {  get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfiguration(new FacilityConfigurations());
@@ -34,6 +35,7 @@ namespace Models
             modelBuilder.ApplyConfiguration(new OrderConfigurations());
             modelBuilder.ApplyConfiguration(new PropertyUnitPriceConfigurations());
             modelBuilder.ApplyConfiguration(new PropertyRentalYieldConfigurations());
+            modelBuilder.ApplyConfiguration(new AboutQismaConfigurations());
             modelBuilder.DataSeed();
             base.OnModelCreating(modelBuilder);
         }

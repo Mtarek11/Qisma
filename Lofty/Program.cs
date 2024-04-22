@@ -58,7 +58,8 @@ namespace WebApis
             appbuilder.Services.AddScoped(typeof(OrderManager));
             appbuilder.Services.AddScoped(typeof(PropertyUnitPriceManager));
             appbuilder.Services.AddScoped(typeof(PropertyRentalYieldManager));
-            appbuilder.Services.AddHostedService<OrderConfirmationBackgroundService>();
+            appbuilder.Services.AddScoped(typeof(AboutQismaManager));
+            //appbuilder.Services.AddHostedService<OrderConfirmationBackgroundService>();
             appbuilder.Services.AddControllers(
                 con => con.Filters.Add<ExceptionFilter>()
                 ).AddNewtonsoftJson(option =>

@@ -40,13 +40,13 @@ namespace ViewModels
                 FirstName = user.FirstName, 
                 IdentityImageUrl = user.IdentityImageUrl,
                 IdentityNumber = user.IdentityNumber,
-                InvestorType = user.InvestoreType,
+                InvestorTypeId = user.InvestoreType,
+                InvestorType = user.InvestoreType == InvestorType.Institutional ? "Institutional" : "Retail",
                 LastName = user.LastName,
                 MiddleName = user.MiddleName,
                 Occupation = user.Occupation,
                 PhoneNumber = user.PhoneNumber,
                 UserId = user.Id,
-                InvestoreType = user.InvestoreType
             };
         }
     }

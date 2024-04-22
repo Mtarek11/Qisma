@@ -35,13 +35,13 @@ namespace Reposatiory
             Models.Property property = viewModel.ToPropertyModel();
             PropertyUnitPrice propertyUnitPrice = new() 
             {
-                From = DateTime.Now,
+                From = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")),
                 UnitPrice = viewModel.UnitPrice
             };
             PropertyRentalYield propertyRentalYield = new()
             {
                 RentalYield = viewModel.AnnualRentalYield,
-                From = DateTime.Now,
+                From = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")),
             };
             property.PropertyUnitPrices.Add(propertyUnitPrice);
             property.PropertyRentalYields.Add(propertyRentalYield);
@@ -101,7 +101,7 @@ namespace Reposatiory
                            To = i.To,
                            From = i.From
                        }).FirstOrDefaultAsync();
-                    if (DateTime.Now.Year - propertyRentalYield.From.Year <= 1)
+                    if (TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")).Year - propertyRentalYield.From.Year <= 1)
                     {
                         aPIResult.Message = "Property rental yield can be updated on time a year";
                         aPIResult.StatusCode = 409;
@@ -111,12 +111,12 @@ namespace Reposatiory
                     else
                     {
                         propertyRentalYieldManager.PartialUpdate(propertyRentalYield);
-                        propertyRentalYield.To = DateTime.Now;
+                        propertyRentalYield.To = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time"));
                         PropertyRentalYield newPropertyRentalYield = new()
                         {
                             PropertyId = viewModel.PropertyId,
                             RentalYield = (double)viewModel.AnnualRentalYield,
-                            From = DateTime.Now,
+                            From = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")),
                         };
                         await propertyRentalYieldManager.AddAsync(newPropertyRentalYield);
                         isUpdated = true;
@@ -153,11 +153,11 @@ namespace Reposatiory
                             To = i.To,
                         }).FirstOrDefaultAsync();
                     propertyUnitPriceManager.PartialUpdate(propertyUnitPrice);
-                    propertyUnitPrice.To = DateTime.Now;
+                    propertyUnitPrice.To = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time"));
                     PropertyUnitPrice newPropertyUnitPrice = new()
                     {
                         PropertyId = viewModel.PropertyId,
-                        From = DateTime.Now,
+                        From = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")),
                         UnitPrice = (double)viewModel.UnitPrice
                     };
                     await propertyUnitPriceManager.AddAsync(newPropertyUnitPrice);
@@ -242,7 +242,7 @@ namespace Reposatiory
                 }
                 if (isUpdated)
                 {
-                    property.LastModificationDate = DateTime.Now;
+                    property.LastModificationDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time"));
                     await unitOfWork.CommitAsync();
                     aPIResult.Message = "Property updated";
                     aPIResult.StatusCode = 200;
@@ -332,7 +332,7 @@ namespace Reposatiory
             { 
                 bool buyerTracker = await buyTrackerManager.ProceedWithBuyAsync(userId, propertyId);
                 if (buyerTracker)
-                {
+                { 
                     aPIResult.Data = property;  
                     aPIResult.IsSucceed = true;
                     aPIResult.StatusCode = 200;
@@ -374,7 +374,7 @@ namespace Reposatiory
                 {
                     PartialUpdate(property);
                     property.IsDeleted = false;
-                    property.LastModificationDate = DateTime.Now;
+                    property.LastModificationDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time"));
                     await unitOfWork.CommitAsync();
                     aPIResult.IsSucceed = true;
                     aPIResult.StatusCode = 200;
@@ -385,7 +385,7 @@ namespace Reposatiory
                 {
                     PartialUpdate(property);
                     property.IsDeleted = true;
-                    property.LastModificationDate = DateTime.Now;
+                    property.LastModificationDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time"));
                     await unitOfWork.CommitAsync();
                     aPIResult.IsSucceed = true;
                     aPIResult.StatusCode = 200;
@@ -534,6 +534,13 @@ namespace Reposatiory
             {
                 aPIResult.Message = "Property updated, go to property details page again";
                 aPIResult.StatusCode = 409;
+                aPIResult.IsSucceed = false;
+                return aPIResult;
+            }
+            if (numberOfshares < property.MinOfShares )
+            {
+                aPIResult.Message = "Cannot insert less than min number of shares";
+                aPIResult.StatusCode = 400;
                 aPIResult.IsSucceed = false;
                 return aPIResult;
             }

@@ -32,7 +32,7 @@ namespace ViewModels
                 GovernorateId = viewModel.GovernorateId,
                 Status = viewModel.Status,
                 CityId = viewModel.CityId,
-                LastModificationDate = DateTime.Now
+                LastModificationDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time"))
             };
         }
         public static Expression<Func<Models.Property, PropertyViewModelInListView>> ToPropertyViewModelInListExpression(bool isAdmin)

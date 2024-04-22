@@ -13,5 +13,6 @@ namespace ViewModels
         public PropertyViewModelInListView Property { get; set; } = new PropertyViewModelInListView();
         public OrderStatus OrderStatus { get; set; }
         public string OrderStatusName { get; set; }
+        public string OrderPdfUrl { get; set; }
     }
 }

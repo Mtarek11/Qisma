@@ -15,6 +15,9 @@ namespace Models
             modelBuilder.Entity<IdentityRole>().HasData(
                new IdentityRole { Name = "Admin", NormalizedName = "ADMIN" },
                new IdentityRole { Name = "Customer", NormalizedName = "CUSTOMER" });
+            modelBuilder.Entity<AboutQisma>().HasData(
+              new AboutQisma { Id = 1, Content = "Support@qisma.com"},
+              new AboutQisma { Id = 2, Content = "+20 100 123 654 8" });
             modelBuilder.Entity<Facility>().HasData(
                new Facility { Id = 1, SVG = "furniture.svg" },
                new Facility { Id = 2, SVG = "snow-icon.svg" },

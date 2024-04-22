@@ -25,7 +25,7 @@ namespace Reposatiory
             if (buyTracker != null)
             {
                 PartialUpdate(buyTracker);
-                buyTracker.LastProceedDate = DateTime.Now;
+                buyTracker.LastProceedDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time"));
                 await unitOfWork.CommitAsync();
                 return true;
             }
@@ -35,7 +35,7 @@ namespace Reposatiory
                 {
                     PropertyId = propertyId,
                     UserId = userId,
-                    LastProceedDate = DateTime.Now,
+                    LastProceedDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")),
                 };
                 try
                 {
