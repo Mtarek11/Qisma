@@ -13,9 +13,11 @@ namespace Lofty.Controllers
     /// User APIs
     /// </summary>
     /// <param name="_accountManager"></param>
-    public class UserAccountController(UserManager _accountManager) : ControllerBase
+    /// <param name="_orderManager"></param>
+    public class UserAccountController(UserManager _accountManager, OrderManager _orderManager) : ControllerBase
     {
         private readonly UserManager accountManager = _accountManager;
+        private readonly OrderManager orderManager = _orderManager; 
         /// <summary>
         /// Sign up for customers ==> InvestoreType 1- Retail 2- Institutional
         /// </summary>
@@ -104,6 +106,40 @@ namespace Lofty.Controllers
                     Message = "User not found"
                 });
             }
+        }
+        /// <summary>
+        /// Get user portfolio
+        /// </summary>
+        /// <returns></returns>
+        [Authorize(Roles = "Customer")]
+        [HttpGet("api/User/GetPortfolio")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<UserPortfolioViewModel>))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<UserPortfolioViewModel>))]
+        public async Task<IActionResult> GetUserPortfolioAsync()
+        {
+            Claim userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            string userId = userIdClaim.Value;
+            UserPortfolioViewModel userPortfolio = await orderManager.GetUserPortfolioAsync(userId);
+            if (userPortfolio != null)
+            {
+                return Ok(new APIResult<UserPortfolioViewModel>()
+                {
+                    Data = userPortfolio,
+                    IsSucceed = true,
+                    StatusCode = 200,
+                    Message = "User portfolio"
+                });
+            }
+            else
+            {
+                return Ok(new APIResult<UserPortfolioViewModel>()
+                {
+                    IsSucceed = false,
+                    StatusCode = 200,
+                    Message = "No confirmed orders till now"
+                });
+            }
+
         }
     }
 }

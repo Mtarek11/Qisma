@@ -1,21 +1,17 @@
-﻿using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 using ViewModels;
-using System.IO;
-using System.Text.RegularExpressions;
-using iTextSharp.text;
-using iTextSharp.text.pdf;
-using System.Reflection.PortableExecutable;
-using iTextSharp.text.pdf.parser;
-using static iTextSharp.text.pdf.parser.LocationTextExtractionStrategy;
+using System.Reflection.Metadata;
+using iText.Kernel.Pdf;
+using iText.Layout;
+using iText.Layout.Element;
+using iText.Layout.Properties;
 
 namespace Reposatiory
 {
@@ -27,8 +23,6 @@ namespace Reposatiory
         private readonly BuyTrackerManager buyTrackerManager = _buyTrackerManager;
         private readonly PropertyManager propertyManager = _propertyManager;
         private readonly UserManager accountManager = _accountManager;
-
-        [Obsolete]
         public async Task<APIResult<string>> CreateOrderAsync(string userId, string propertyId, int numberOfShares)
         {
             APIResult<string> aPIResult = new();
@@ -128,71 +122,16 @@ namespace Reposatiory
                 order.OrderNumber = propertyId + order.Id + user.FirstName.First() + user.LastName.Last() + user.DateOfBirth.Day.ToString() + user.DateOfBirth.Month.ToString();
                 Update(order);
                 await unitOfWork.CommitAsync();
-                string supportEmail = await aboutQismaManager.GetAboutQismaContentAsync(1);
-                string supportPhoneNumber = await aboutQismaManager.GetAboutQismaContentAsync(2);
-                //string inputPdfPath = "Order_Confirmation_Form.pdf";
-                //string outputPdfPath = $"Content/Orders_PDF/{order.OrderNumber}.pdf";
-                //List<string> searchWords = new List<string>
-                //{
-                //    "[Property Name]", "[Property ID]", "[Number of Shares]","[Total Amount]", "[Transaction ID]", "[Date]", "[HH:MM MM-DD-YY]", "[Value of First Payment]",
-                //    "[Company Name]", "[Investor Name]", "[Investor National ID No.]", "[Support Email]", "[Support Phone Number]",
-                //};
-                //List<string> replaceWords = new List<string>
-                //{
-                //    property.Location, propertyId, numberOfShares.ToString(), (numberOfShares * property.PropertyUnitPrices.Select(i => i.UnitPrice).FirstOrDefault()).ToString(),
-                //    order.OrderNumber, order.OrderDate.ToString("MM-dd-yyyy"), order.OrderDate.AddDays(2).ToString("HH:mm MM-dd-yyyy"), order.DownPayment.ToString(),
-                //    user.CompanyName == null ? "--" : user.CompanyName, user.FirstName + " " + user.MiddleName + " " + user.LastName, user.IdentityNumber, supportEmail, supportPhoneNumber
-                //};
-                //using (PdfReader reader = new PdfReader(inputPdfPath))
-                //using (FileStream outputStream = new FileStream(outputPdfPath, FileMode.Create, FileAccess.Write))
-                //using (PdfStamper stamper = new PdfStamper(reader, outputStream))
-                //{
-                //    for (int pageNumber = 1; pageNumber <= reader.NumberOfPages; pageNumber++)
-                //    {
-                //        PdfContentByte canvas = stamper.GetOverContent(pageNumber);
-                //        foreach (var pair in searchWords.Zip(replaceWords, (s, r) => new { SearchWord = s, ReplaceWord = r }))
-                //        {
-                //            float[] positions = FindTextPositions(reader, pageNumber, pair.SearchWord);
-
-                //            foreach (float position in positions)
-                //            {
-                //                ColumnText.ShowTextAligned(canvas, Element.ALIGN_LEFT, new Phrase(pair.ReplaceWord), position, 0, 0);
-                //            }
-                //        }
-                //        canvas = stamper.GetOverContent(pageNumber);
-                //        Rectangle pageSize = reader.GetPageSizeWithRotation(pageNumber);
-                //        for (int i = 0; i < searchWords.Count; i++)
-                //        {
-                //            string searchWord = searchWords[i];
-                //            string replaceWord = replaceWords[i];
-                //            BaseFont font = BaseFont.CreateFont(BaseFont.HELVETICA, BaseFont.CP1252, BaseFont.NOT_EMBEDDED);
-                //            Font textFont = new Font(font, 12, Font.NORMAL);
-                //            Phrase searchPhrase = new Phrase(searchWord, textFont);
-                //            ColumnText ct = new ColumnText(canvas);
-                //            ct.SetSimpleColumn(searchPhrase, pageSize.Left, pageSize.Bottom, pageSize.Right, pageSize.Top, 12, Element.ALIGN_LEFT);
-                //            int status = ct.Go();
-                //            if (status == ColumnText.NO_MORE_TEXT)
-                //            {
-                //                canvas.BeginText();
-                //                canvas.SetFontAndSize(font, 12);
-                //                canvas.SetRGBColorFill(0, 0, 0);
-                //                canvas.ShowTextAligned(Element.ALIGN_LEFT, replaceWord, pageSize.Left, pageSize.Bottom, 0);
-                //                canvas.EndText();
-                //            }
-                //        }
-                //        stamper.Close();
-                //        reader.Close();
-                //    }
-                    using (var client = new SmtpClient("smtp.gmail.com", 587))
-                    {
-                        client.UseDefaultCredentials = false;
-                        client.Credentials = new NetworkCredential("mohamedtarek70m@gmail.com", "ptuw vvlf rkue elgh");
-                        client.EnableSsl = true;
-                        MailAddress from = new MailAddress("mohamedtarek70m@gmail.com");
-                        MailAddress to = new MailAddress(user.Email);
-                        string subject = $"Your Order Confirmation - {property.Location} Fractional Ownership";
-                        string body =
-                            $@"<html>
+                using (var client = new SmtpClient("smtp.gmail.com", 587))
+                {
+                    client.UseDefaultCredentials = false;
+                    client.Credentials = new NetworkCredential("mohamedtarek70m@gmail.com", "ptuw vvlf rkue elgh");
+                    client.EnableSsl = true;
+                    MailAddress from = new MailAddress("mohamedtarek70m@gmail.com");
+                    MailAddress to = new MailAddress(user.Email);
+                    string subject = $"Your Order Confirmation - {property.Location} Fractional Ownership";
+                    string body =
+                        $@"<html>
                             <head>
                              <style>
                              .bold {{
@@ -217,21 +156,19 @@ namespace Reposatiory
                             QISMA
                             </body>
                            </html>";
-                        MailMessage message = new MailMessage(from, to)
-                        {
-                            Subject = subject,
-                            Body = body,
-                            IsBodyHtml = true
-                        };
-                        //message.Attachments.Add(new Attachment($"Content/Orders_PDF/{order.OrderNumber}.pdf"));
-                        client.Send(message);
-                    }
-                    aPIResult.Data = order.OrderNumber;
-                    aPIResult.Message = "Order placed";
-                    aPIResult.StatusCode = 200;
-                    aPIResult.IsSucceed = false;
-                    return aPIResult;
-                //}
+                    MailMessage message = new MailMessage(from, to)
+                    {
+                        Subject = subject,
+                        Body = body,
+                        IsBodyHtml = true
+                    };
+                    client.Send(message);
+                }
+                aPIResult.Data = order.OrderNumber;
+                aPIResult.Message = "Order placed";
+                aPIResult.StatusCode = 200;
+                aPIResult.IsSucceed = false;
+                return aPIResult;
             }
         }
         public async Task RealasePendingSharesAsync()
@@ -400,89 +337,53 @@ namespace Reposatiory
             };
             return paginationViewModel;
         }
-        //private float[] FindTextPositions(PdfReader reader, int pageNumber, string searchText)
-        //{
-        //    List<float> positions = new List<float>();
-
-        //    ITextExtractionStrategy strategy = new LocationTextExtractionStrategy();
-
-        //    string text = PdfTextExtractor.GetTextFromPage(reader, pageNumber, strategy);
-
-        //    foreach (TextRenderInfo renderInfo in strategy.GetResultantText())
-        //    {
-        //        string chunkText = renderInfo.GetText();
-        //        if (chunkText.Contains(searchText))
-        //        {
-        //            Vector startLocation = renderInfo.GetDescentLine().GetStartPoint();
-        //            positions.Add(startLocation[0]); // Use index 0 for X-coordinate
-        //        }
-        //    }
-
-        //    return positions.ToArray();
-        //}
-        //public async Task<UserPortfolioViewModel> GetUserPortfolioAsync(string userId)
-        //{
-        //    UserPortfolioViewModel userPortfolio = new();
-        //    List<Order> userOrders = await GetAll().Where(i => i.UserId == userId && i.OrderStatus == OrderStatus.Confirmed).Select(i => new Order()
-        //    {
-        //        SharePrice = i.SharePrice,
-        //        NumberOfShares = i.NumberOfShares,
-        //        ConfirmationDate = i.ConfirmationDate,
-        //        Property = new Property()
-        //        {
-        //          SharePrice = i.Property.SharePrice,
-        //          NumberOfShares = i.Property.NumberOfShares,
-        //          PropertyRentalYields = i.Property.PropertyRentalYields,
-        //          AnnualPriceAppreciation = i.Property.AnnualPriceAppreciation,
-        //          PropertyUnitPrices = i.Property.PropertyUnitPrices
-        //        },
-        //    }).ToListAsync();
-        //    if (userOrders.Count > 0)
-        //    {
-        //        foreach(Order order in  userOrders)
-        //        {
-        //            userPortfolio.ProtfolioValue += (order.Property.SharePrice * order.NumberOfShares);
-        //            DateTime orderConfirmationDate = (DateTime)order.ConfirmationDate;
-        //            double propertyRentalYield = order.Property.PropertyRentalYields.Where(i =>i.To == null).Select(i => i.RentalYield).FirstOrDefault();
-        //            List<PropertyUnitPrice> propertyUnitPrices = order.Property.PropertyUnitPrices.Where(i => i.To == null || i.To >= new DateTime(DateTime.Now.Year, 1, 1)
-        //            ).ToList();
-        //            foreach(PropertyUnitPrice propertyUnitPrice in propertyUnitPrices)
-        //            {
-        //                if (propertyUnitPrice.To == null)
-        //                {
-        //                    if (new DateTime(DateTime.Now.Year, 1, 1) >= orderConfirmationDate)
-        //                    {
-        //                        int numberOfMonthes = DateTime.Now.Month;
-        //                        userPortfolio.GrossMonthlyIncome = userPortfolio.GrossMonthlyIncome + (propertyRentalYield * propertyUnitPrice.UnitPrice * order.NumberOfShares)
-        //                            / (order.Property.NumberOfShares * numberOfMonthes);
-        //                    }
-        //                    else
-        //                    {
-        //                        int numberOfMonthes = DateTime.Now.Month - orderConfirmationDate.Month + 1;
-        //                        userPortfolio.GrossMonthlyIncome = userPortfolio.GrossMonthlyIncome + (propertyRentalYield * propertyUnitPrice.UnitPrice * order.NumberOfShares)
-        //                            / (order.Property.NumberOfShares * numberOfMonthes);
-        //                    }
-        //                }
-        //                else
-        //                {
-        //                    if (propertyUnitPrice.)
-        //                    {
-        //                        int numberOfMonthes = DateTime.Now.Month;
-        //                        userPortfolio.GrossMonthlyIncome = userPortfolio.GrossMonthlyIncome + (propertyRentalYield * propertyUnitPrice.UnitPrice * order.NumberOfShares)
-        //                            / (order.Property.NumberOfShares * numberOfMonthes);
-        //                    }
-        //                    else
-        //                    {
-        //                        int numberOfMonthes = DateTime.Now.Month - orderConfirmationDate.Month + 1;
-        //                        userPortfolio.GrossMonthlyIncome = userPortfolio.GrossMonthlyIncome + (propertyRentalYield * propertyUnitPrice.UnitPrice * order.NumberOfShares)
-        //                            / (order.Property.NumberOfShares * numberOfMonthes);
-        //                    }
-        //                }
-        //            }
-        //        }
-        //        userPortfolio.CurrentMonth = DateTime.Now.Month;
-        //        userPortfolio.NumberOfProperties = userOrders.Count;
-        //    }
-        //}
+        public async Task<UserPortfolioViewModel> GetUserPortfolioAsync(string userId)
+        {
+            UserPortfolioViewModel userPortfolio = new();
+            List<Order> userOrders = await GetAll().Where(i => i.UserId == userId && i.OrderStatus == OrderStatus.Confirmed).Select(i => new Order()
+            {
+                SharePrice = i.SharePrice,
+                NumberOfShares = i.NumberOfShares,
+                ConfirmationDate = i.ConfirmationDate,
+                PropertyId = i.PropertyId,
+                Property = new Models.Property()
+                {
+                    SharePrice = i.Property.SharePrice,
+                    NumberOfShares = i.Property.NumberOfShares,
+                    PropertyRentalYields = i.Property.PropertyRentalYields,
+                    AnnualPriceAppreciation = i.Property.AnnualPriceAppreciation,
+                    PropertyUnitPrices = i.Property.PropertyUnitPrices,
+                    Status = i.Property.Status,
+                    Location = i.Property.Location
+                },
+            }).ToListAsync();
+            if (userOrders.Count > 0)
+            {
+                foreach (Order order in userOrders)
+                {
+                    userPortfolio.ProtfolioValue += (order.Property.SharePrice * order.NumberOfShares);
+                    userPortfolio.TotalAppreciation += order.Property.AnnualPriceAppreciation * order.NumberOfShares * order.Property.SharePrice;
+                    UserPropertiesInPortfolioViewModel userStacks = new()
+                    {
+                        StatusId = order.Property.Status,
+                        Status = order.Property.Status == Status.ReadyToMove ? "Ready To Move" : order.Property.Status == Status.Rented ? "Rented" : "Under Construction",
+                        InvestmentValue = order.NumberOfShares * order.Property.SharePrice,
+                        PropertyId = order.PropertyId,
+                        PropertyLocation = order.Property.Location,
+                        TotalRentalIncome = 0,
+                    };
+                    userPortfolio.UserStakes.Add(userStacks);
+                }
+                userPortfolio.GrossMonthlyIncome = 0;
+                userPortfolio.CurrentMonth = DateTime.Now.Month;
+                userPortfolio.NumberOfProperties = userOrders.Count;
+                return userPortfolio;
+            }
+            else
+            {
+                userPortfolio = null;
+                return userPortfolio;
+            }
+        }
     }
-} 
+}

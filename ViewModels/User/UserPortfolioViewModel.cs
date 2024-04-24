@@ -13,6 +13,6 @@ namespace ViewModels
         public double TotalAppreciation { get; set; }
         public int NumberOfProperties {  get; set; }
         public int CurrentMonth {  get; set; }
-        public UserPropertiesInPortifolioViewModel UserStakes {  get; set; } = new UserPropertiesInPortifolioViewModel();
+        public List<UserPropertiesInPortfolioViewModel> UserStakes {  get; set; } = new List<UserPropertiesInPortfolioViewModel>();
     }
 }

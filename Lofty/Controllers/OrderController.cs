@@ -31,7 +31,6 @@ namespace Lofty.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(APIResult<string>))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<string>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
-        [System.Obsolete]
         public async Task<IActionResult> PlaceOrderAsync([Required, FromQuery] string PropertyId, [Required, FromQuery] int NumberOfShares)
         {
             if (ModelState.IsValid)
@@ -71,7 +70,7 @@ namespace Lofty.Controllers
             {
                 PaginationViewModel<OrderViewModelForAdmin> orders = await orderManager.GetAllOrdersForAdminAsync(PageNumber, PageSize, OrderStatus);
                 if (orders.ItemsList.Count > 0)
-                { 
+                {
                     return Ok(new APIResult<PaginationViewModel<OrderViewModelForAdmin>>()
                     {
                         Data = orders,
@@ -106,7 +105,7 @@ namespace Lofty.Controllers
         /// <param name="OrderId"></param>
         /// <param name="ConfirmedOrRejected"></param>
         /// <returns></returns>
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost("api/Dashboard/Orders/ConfirmOrder")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(APIResult<string>))]
