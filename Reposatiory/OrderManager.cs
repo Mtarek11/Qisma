@@ -7,11 +7,9 @@ using System.Net.Mail;
 using System.Net;
 using System.Threading.Tasks;
 using ViewModels;
-using System.Reflection.Metadata;
-using iText.Kernel.Pdf;
-using iText.Layout;
-using iText.Layout.Element;
-using iText.Layout.Properties;
+using System.IO;
+using iTextSharp.text.pdf;
+using iTextSharp.text;
 
 namespace Reposatiory
 {
@@ -122,6 +120,52 @@ namespace Reposatiory
                 order.OrderNumber = propertyId + order.Id + user.FirstName.First() + user.LastName.Last() + user.DateOfBirth.Day.ToString() + user.DateOfBirth.Month.ToString();
                 Update(order);
                 await unitOfWork.CommitAsync();
+                string customerSupportEmail = await aboutQismaManager.GetAboutQismaContentAsync(1);
+                string customerSupportPhoneNumber = await aboutQismaManager.GetAboutQismaContentAsync(2);
+                string templatePath = "Order_Confirmation_Form.pdf";
+                string outputPath = $"Content/Orders_PDF/{order.OrderNumber}.pdf";
+                using (PdfReader reader = new PdfReader(templatePath))
+                {
+                    using (FileStream fs = new FileStream(outputPath, FileMode.Create))
+                    {
+                        using (PdfStamper stamper = new PdfStamper(reader, fs))
+                        {
+                            int totalPages = reader.NumberOfPages;
+                            for (int pageIndex = 1; pageIndex <= totalPages; pageIndex++)
+                            {
+                                if (pageIndex == 1)
+                                {
+                                    Rectangle pageSize = reader.GetPageSize(pageIndex);
+                                    PdfContentByte pdfContentByte = stamper.GetOverContent(pageIndex);
+                                    pdfContentByte.SetFontAndSize(BaseFont.CreateFont(), 12);
+                                    pdfContentByte.BeginText();
+                                    pdfContentByte.SetColorFill(BaseColor.BLACK);
+                                    pdfContentByte.ShowTextAligned(PdfContentByte.ALIGN_LEFT, property.Location + "," + property.Id, 160, pageSize.Height - 247, 0);
+                                    pdfContentByte.ShowTextAligned(PdfContentByte.ALIGN_LEFT, numberOfShares.ToString(), 231, pageSize.Height - 271, 0);
+                                    pdfContentByte.ShowTextAligned(PdfContentByte.ALIGN_LEFT, (numberOfShares * order.SharePrice).ToString(), 166, pageSize.Height - 295, 0);
+                                    pdfContentByte.ShowTextAligned(PdfContentByte.ALIGN_LEFT, order.OrderNumber, 156, pageSize.Height - 319, 0);
+                                    pdfContentByte.ShowTextAligned(PdfContentByte.ALIGN_LEFT, order.OrderDate.ToString("MM-dd-yy"), 171, pageSize.Height - 343, 0);
+                                    pdfContentByte.ShowTextAligned(PdfContentByte.ALIGN_LEFT, order.DownPayment?.ToString("0.00"), 153, pageSize.Height - 367, 0);
+                                    pdfContentByte.ShowTextAligned(PdfContentByte.ALIGN_LEFT, user.CompanyName == null ? " " : user.CompanyName, 140, pageSize.Height - 387, 0);
+                                    pdfContentByte.ShowTextAligned(PdfContentByte.ALIGN_LEFT, user.FirstName + " " + user.MiddleName + " " + user.LastName, 153, pageSize.Height - 415, 0);
+                                    pdfContentByte.ShowTextAligned(PdfContentByte.ALIGN_LEFT, order.OrderDate.AddDays(2).ToString("HH:mm   MM-dd-yy"), 365, pageSize.Height - 670, 0);
+                                    pdfContentByte.EndText();
+                                }
+                                if (pageIndex == 2)
+                                {
+                                    Rectangle pageSize = reader.GetPageSize(pageIndex);
+                                    PdfContentByte pdfContentByte = stamper.GetOverContent(pageIndex);
+                                    pdfContentByte.SetFontAndSize(BaseFont.CreateFont(), 12);
+                                    pdfContentByte.BeginText();
+                                    pdfContentByte.SetColorFill(BaseColor.BLACK);
+                                    pdfContentByte.ShowTextAligned(PdfContentByte.ALIGN_LEFT, customerSupportEmail, 400, pageSize.Height - 348, 0);
+                                    pdfContentByte.ShowTextAligned(PdfContentByte.ALIGN_LEFT, customerSupportPhoneNumber, 88, pageSize.Height - 363, 0);
+                                    pdfContentByte.EndText();
+                                }
+                            }
+                        }
+                    }
+                }
                 using (var client = new SmtpClient("smtp.gmail.com", 587))
                 {
                     client.UseDefaultCredentials = false;
@@ -162,6 +206,8 @@ namespace Reposatiory
                         Body = body,
                         IsBodyHtml = true
                     };
+                    Attachment attachment = new Attachment(outputPath);
+                    message.Attachments.Add(attachment);
                     client.Send(message);
                 }
                 aPIResult.Data = order.OrderNumber;
@@ -354,30 +400,61 @@ namespace Reposatiory
                     AnnualPriceAppreciation = i.Property.AnnualPriceAppreciation,
                     PropertyUnitPrices = i.Property.PropertyUnitPrices,
                     PropertyStatus = i.Property.PropertyStatus,
-                    Location = i.Property.Location
+                    Location = i.Property.Location,
                 },
             }).ToListAsync();
             if (userOrders.Count > 0)
             {
+                DateTime currentDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time"));
+                DateTime firstDayOfYear = new DateTime(currentDateTime.Year, 1, 1);
+                DateTime firstDayOfCurrentMonth = new DateTime(currentDateTime.Year, currentDateTime.Month, 1);
                 foreach (Order order in userOrders)
                 {
-                    userPortfolio.ProtfolioValue += (order.Property.SharePrice * order.NumberOfShares);
-                    userPortfolio.TotalAppreciation += order.Property.AnnualPriceAppreciation * order.NumberOfShares * order.Property.SharePrice;
-                    UserPropertiesInPortfolioViewModel userStacks = new()
+                    double rentalYield = order.Property.PropertyRentalYields.Where(i => i.To == null).Select(i => i.RentalYield).FirstOrDefault();
+                    double totalRentalIncome = 0;
+                    for (DateTime date = firstDayOfYear; date <= firstDayOfCurrentMonth; date = date.AddMonths(1))
                     {
-                        StatusId = order.Property.PropertyStatus.Where(i => i.To == null).Select(i => i.Status).FirstOrDefault(),
-                        Status = order.Property.PropertyStatus.Where(i => i.To == null).Select(i => i.Status).FirstOrDefault()
-                        == Status.ReadyToMove ? "Ready To Move" : order.Property.PropertyStatus.Where(i => i.To == null).Select(i => i.Status).FirstOrDefault()
-                        == Status.Rented ? "Rented" : "Under Construction",
+                        if (order.Property.PropertyStatus.Any(ps => ps.Status == Status.Rented && ps.From <= date))
+                        {
+                            DateTime nextMonth = date.AddMonths(1);
+                            DateTime lastDayOfMonth = nextMonth.AddDays(-1);
+                            if ((DateTime)order.ConfirmationDate?.Date >= date)
+                            {
+                                if (((DateTime)order.ConfirmationDate?.Date - date).TotalDays >= 30) 
+                                {
+                                    PropertyUnitPrice unitPriceAtDate = order.Property.PropertyUnitPrices.FirstOrDefault(pup =>
+                                        (pup.From <= date && (pup.To == null || pup.To >= date)));
+                                    double rentalIncome = rentalYield * unitPriceAtDate.UnitPrice / order.Property.NumberOfShares * order.NumberOfShares;
+                                    totalRentalIncome += rentalIncome;
+                                }
+                                else 
+                                {
+                                    PropertyUnitPrice unitPriceAtCurrentMonth = order.Property.PropertyUnitPrices.FirstOrDefault(pup =>
+                                        (pup.From <= firstDayOfCurrentMonth && (pup.To == null || pup.To >= firstDayOfCurrentMonth)));
+                                    double rentalIncome = rentalYield * unitPriceAtCurrentMonth.UnitPrice / order.Property.NumberOfShares * order.NumberOfShares;
+                                    totalRentalIncome += rentalIncome * ((int)order.ConfirmationDate?.Date.Day / 30);
+                                }
+                            }
+                        }
+
+                    }
+                    userPortfolio.GrossMonthlyIncome += totalRentalIncome;
+                    userPortfolio.UserStakes.Add(new UserPropertiesInPortfolioViewModel
+                    {
+                        StatusId = order.Property.PropertyStatus.FirstOrDefault(i => i.To == null)?.Status ?? Status.UnderConstruction,
+                        Status = order.Property.PropertyStatus.FirstOrDefault(i => i.To == null)?.Status switch
+                        {
+                            Status.ReadyToMove => "Ready To Move",
+                            Status.Rented => "Rented",
+                            _ => "Under Construction"
+                        },
                         InvestmentValue = order.NumberOfShares * order.Property.SharePrice,
                         PropertyId = order.PropertyId,
                         PropertyLocation = order.Property.Location,
-                        TotalRentalIncome = 0,
-                    };
-                    userPortfolio.UserStakes.Add(userStacks);
+                        TotalRentalIncome = totalRentalIncome
+                    });
                 }
-                userPortfolio.GrossMonthlyIncome = 0;
-                userPortfolio.CurrentMonth = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")).ToString("MMMM");
+                userPortfolio.CurrentMonth = currentDateTime.ToString("MMMM");
                 userPortfolio.NumberOfProperties = userOrders.Count;
                 return userPortfolio;
             }
