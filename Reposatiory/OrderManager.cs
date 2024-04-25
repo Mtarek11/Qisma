@@ -353,7 +353,7 @@ namespace Reposatiory
                     PropertyRentalYields = i.Property.PropertyRentalYields,
                     AnnualPriceAppreciation = i.Property.AnnualPriceAppreciation,
                     PropertyUnitPrices = i.Property.PropertyUnitPrices,
-                    Status = i.Property.Status,
+                    PropertyStatus = i.Property.PropertyStatus,
                     Location = i.Property.Location
                 },
             }).ToListAsync();
@@ -365,8 +365,10 @@ namespace Reposatiory
                     userPortfolio.TotalAppreciation += order.Property.AnnualPriceAppreciation * order.NumberOfShares * order.Property.SharePrice;
                     UserPropertiesInPortfolioViewModel userStacks = new()
                     {
-                        StatusId = order.Property.Status,
-                        Status = order.Property.Status == Status.ReadyToMove ? "Ready To Move" : order.Property.Status == Status.Rented ? "Rented" : "Under Construction",
+                        StatusId = order.Property.PropertyStatus.Where(i => i.To == null).Select(i => i.Status).FirstOrDefault(),
+                        Status = order.Property.PropertyStatus.Where(i => i.To == null).Select(i => i.Status).FirstOrDefault()
+                        == Status.ReadyToMove ? "Ready To Move" : order.Property.PropertyStatus.Where(i => i.To == null).Select(i => i.Status).FirstOrDefault()
+                        == Status.Rented ? "Rented" : "Under Construction",
                         InvestmentValue = order.NumberOfShares * order.Property.SharePrice,
                         PropertyId = order.PropertyId,
                         PropertyLocation = order.Property.Location,
@@ -375,7 +377,7 @@ namespace Reposatiory
                     userPortfolio.UserStakes.Add(userStacks);
                 }
                 userPortfolio.GrossMonthlyIncome = 0;
-                userPortfolio.CurrentMonth = DateTime.Now.Month;
+                userPortfolio.CurrentMonth = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")).ToString("MMMM");
                 userPortfolio.NumberOfProperties = userOrders.Count;
                 return userPortfolio;
             }

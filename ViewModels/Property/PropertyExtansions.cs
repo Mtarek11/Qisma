@@ -30,7 +30,6 @@ namespace ViewModels
                 DeliveryInstallment = viewModel.DeliveryInstallment,
                 Type = viewModel.Type,
                 GovernorateId = viewModel.GovernorateId,
-                Status = viewModel.Status,
                 CityId = viewModel.CityId,
                 LastModificationDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time"))
             };
@@ -45,8 +44,11 @@ namespace ViewModels
                 City = i.City.NameEn,
                 ImageUrl = i.PropertyImages.Select(image => image.ImageUrl).FirstOrDefault(),
                 PropertyId = i.Id,
-                AvailableTokens = i.AvailableShares,
+                AvailableTokens = i.AvailableShares, 
                 TokenPrice = i.SharePrice,
+                StatusId = i.PropertyStatus.Where(i => i.To == null).Select(i => i.Status).FirstOrDefault(),
+                StatusName = i.PropertyStatus.Where(i => i.To == null).Select(i => i.Status).FirstOrDefault() == Status.Rented ? "Rented" :
+                i.PropertyStatus.Where(i => i.To == null).Select(i => i.Status).FirstOrDefault() == Status.ReadyToMove ? "Ready To Move" : "Under Construction",
                 IsDeleted = isAdmin ? i.IsDeleted : null,
             };
         }
@@ -79,7 +81,7 @@ namespace ViewModels
                 SharePrice = property.SharePrice,
                 UnitPrice = property.PropertyUnitPrices.Where(i => i.To == null).Select(i => i.UnitPrice).FirstOrDefault(),
                 PendingShares = property.UsedShares,
-                Status = property.Status,
+                Status = property.PropertyStatus.Where(i => i.To == null).Select(i => i.Status).FirstOrDefault(),
                 IsDeleted = property.IsDeleted,
                 GovernorateId = property.GovernorateId,
                 PropertyImages = property.PropertyImages.Select(propertyImage => new PropertyImageViewModelforAdmin()
@@ -125,7 +127,7 @@ namespace ViewModels
                 UnitPrice = i.PropertyUnitPrices.Where(i => i.To == null).Select(i => i.UnitPrice).FirstOrDefault(),
                 UsedShares = i.UsedShares,
                 IsDeleted = false,
-                Status = i.Status,
+                Status = i.PropertyStatus.Where(i => i.To == null).Select(i => i.Status).FirstOrDefault(),
                 PropertyImages = i.PropertyImages.Select(image => image.ImageUrl).ToList(),
                 PropertyFacilities = i.PropertyFacilities.Select(propertyFacility => new PropertyFacilityViewModelForUser()
                 {

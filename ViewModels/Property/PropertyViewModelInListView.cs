@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,6 +17,8 @@ namespace ViewModels
         public double ProjectedRentalYield { get; set; }
         public double TokenPrice {  get; set; }
         public int AvailableTokens { get; set; }
+        public Status StatusId {  get; set; }
+        public string StatusName { get; set; }
         public bool? IsDeleted {  get; set; }
     }
 }

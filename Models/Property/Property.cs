@@ -38,7 +38,6 @@ namespace Models
         // Numerical 
         public double? DeliveryInstallment {  get; set; }
         public Type Type { get; set; }
-        public Status Status {  get; set; }
         public bool IsDeleted {  get; set; }
         public DateTime LastModificationDate {  get; set; }
         public virtual ICollection<PropertyUnitPrice> PropertyUnitPrices {  get; set; } = new List<PropertyUnitPrice>();
@@ -47,6 +46,7 @@ namespace Models
         public virtual ICollection<PropertyImage> PropertyImages { get; set; } = new List<PropertyImage>();
         public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
         public virtual ICollection<BuyTracker> BuyTrackers {  get; set; } = new List<BuyTracker>();
+        public virtual ICollection<PropertyStatus> PropertyStatus { get; set; } = new List<PropertyStatus>();
     }
     public enum Type
     {

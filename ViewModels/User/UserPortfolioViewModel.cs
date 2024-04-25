@@ -12,7 +12,7 @@ namespace ViewModels
         public double GrossMonthlyIncome { get; set; }
         public double TotalAppreciation { get; set; }
         public int NumberOfProperties {  get; set; }
-        public int CurrentMonth {  get; set; }
+        public string CurrentMonth {  get; set; }
         public List<UserPropertiesInPortfolioViewModel> UserStakes {  get; set; } = new List<UserPropertiesInPortfolioViewModel>();
     }
 }

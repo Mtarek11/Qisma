@@ -14,13 +14,15 @@ using static System.Net.Mime.MediaTypeNames;
 namespace Reposatiory
 {
     public class PropertyManager(LoftyContext _mydB, UnitOfWork _unitOfWork, CityManager _cityManager,
-        PropertyUnitPriceManager _propertyUnitPriceManager, PropertyRentalYieldManager _propertyRentalYieldManager, BuyTrackerManager _buyTrackerManager) : MainManager<Models.Property>(_mydB)
+        PropertyUnitPriceManager _propertyUnitPriceManager, PropertyRentalYieldManager _propertyRentalYieldManager, BuyTrackerManager _buyTrackerManager,
+        PropertyStatusManager _propertyStatusManager) : MainManager<Models.Property>(_mydB)
     {
         private readonly BuyTrackerManager buyTrackerManager = _buyTrackerManager;
         private readonly CityManager cityManager = _cityManager;
         private readonly UnitOfWork unitOfWork = _unitOfWork;
         private readonly PropertyUnitPriceManager propertyUnitPriceManager = _propertyUnitPriceManager;
         private readonly PropertyRentalYieldManager propertyRentalYieldManager = _propertyRentalYieldManager;
+        private readonly PropertyStatusManager propertyStatusManager = _propertyStatusManager;
         public async Task<APIResult<string>> AddNewPropertyAsync(AddNewPropertyViewModel viewModel)
         {
             APIResult<string> aPIResult = new APIResult<string>();
@@ -31,7 +33,7 @@ namespace Reposatiory
                 aPIResult.IsSucceed = false;
                 aPIResult.StatusCode = 400;
                 return aPIResult;
-            }
+            } 
             Models.Property property = viewModel.ToPropertyModel();
             PropertyUnitPrice propertyUnitPrice = new() 
             {
@@ -43,8 +45,14 @@ namespace Reposatiory
                 RentalYield = viewModel.AnnualRentalYield,
                 From = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")),
             };
+            PropertyStatus propertyStatus = new()
+            {
+                Status = viewModel.Status,
+                From = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")),
+            };
             property.PropertyUnitPrices.Add(propertyUnitPrice);
             property.PropertyRentalYields.Add(propertyRentalYield);
+            property.PropertyStatus.Add(propertyStatus);
             char randomChar1 = (char)('A' + new Random().Next(26));
             char randomChar2 = (char)('A' + new Random().Next(26));
             int randomNumber = new Random().Next(100000, 999999);
@@ -163,6 +171,24 @@ namespace Reposatiory
                     await propertyUnitPriceManager.AddAsync(newPropertyUnitPrice);
                     isUpdated = true;
                 }
+                if (viewModel.Status != null)
+                {
+                    PropertyStatus propertyStatus = await propertyStatusManager.GetAll().Where(i => i.PropertyId == viewModel.PropertyId && i.To == null).Select(i => new PropertyStatus()
+                    {
+                        Id = i.Id,
+                        To = i.To
+                    }).FirstOrDefaultAsync();
+                    propertyStatusManager.PartialUpdate(propertyStatus);
+                    propertyStatus.To = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time"));
+                    PropertyStatus newPropertyStatus = new()
+                    {
+                        PropertyId = viewModel.PropertyId,
+                        From = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")),
+                        Status = (Status)viewModel.Status
+                    };
+                    await propertyStatusManager.AddAsync(newPropertyStatus);
+                    isUpdated = true;
+                }
                 if (viewModel.Description != null)
                 {
                     property.Description = viewModel.Description;
@@ -225,11 +251,6 @@ namespace Reposatiory
                     property.Type = (Models.Type)viewModel.Type;
                     isUpdated = true;
                 }
-                if (viewModel.Status != null)
-                {
-                    property.Status = (Status)viewModel.Status;
-                    isUpdated = true;
-                }
                 if (viewModel.NumberOfYears != null)
                 {
                     property.NumberOfYears = viewModel.NumberOfYears;
@@ -270,7 +291,7 @@ namespace Reposatiory
         {
             int itemsToSkip = pageNumber * pageSize;
             int totalPageNumbers = 0;
-            int totalItemsNumber = 0;
+            int totalItemsNumber = 0; 
             IQueryable<Models.Property> query; 
             if (isAdmin)
             {
@@ -312,7 +333,7 @@ namespace Reposatiory
             if (properties.Count > 0)
             {  
                 int totalItems = await query.CountAsync();
-                totalItemsNumber = totalItems;
+                totalItemsNumber = totalItems; 
                 totalPageNumbers = (int)Math.Ceiling((double)totalItems / pageSize);
             }
             PaginationViewModel<PropertyViewModelInListView> paginationViewModel = new()
@@ -346,6 +367,13 @@ namespace Reposatiory
                     aPIResult.Message = "User not found";
                     return aPIResult;
                 }
+            }else if(property != null && userId == null)
+            {
+                aPIResult.Data = property;
+                aPIResult.IsSucceed = true;
+                aPIResult.StatusCode = 200;
+                aPIResult.Message = "Get property details";
+                return aPIResult;
             }
             else
             {
