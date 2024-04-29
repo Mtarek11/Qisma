@@ -56,6 +56,7 @@ namespace ViewModels
                     MiddleName = i.User.MiddleName,
                     Occupation = i.User.Occupation,
                     PhoneNumber = i.User.PhoneNumber,
+                    ReciveEmails = i.User.ReciveEmails,
                     UserId = i.User.Id,
                 },
                 OrderStatus = i.OrderStatus,

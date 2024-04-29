@@ -13,7 +13,7 @@ namespace ViewModels
         {
             if (value == null)
             {
-                return new ValidationResult(ErrorMessage);
+                return ValidationResult.Success;
             }
             string firstName = value.ToString();
             if (firstName.Length < 3)

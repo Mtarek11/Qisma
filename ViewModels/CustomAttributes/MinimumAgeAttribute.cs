@@ -19,7 +19,7 @@ namespace ViewModels
         {
             if (value == null)
             {
-                return new ValidationResult("Date of birth is requierd");
+                return ValidationResult.Success;
             }
             if (value is DateTime dateOfBirth)
             {

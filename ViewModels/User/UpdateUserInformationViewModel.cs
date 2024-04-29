@@ -9,22 +9,29 @@ using System.Threading.Tasks;
 
 namespace ViewModels
 {
-    public class UserFullInformationViewModel
+    public class UpdateUserInformationViewModel
     {
-        public string UserId {  get; set; }
+        [UserNameLength(ErrorMessage = "First name must be at least 3 character.")]
         public string FirstName { get; set; }
+        [UserNameLength(ErrorMessage = "Middle name must be at least 3 character.")]
         public string MiddleName { get; set; }
+        [UserNameLength(ErrorMessage = "Last name must be at least 3 character.")]
         public string LastName { get; set; }
+        [Phone]
         public string PhoneNumber { get; set; }
+        [EmailAddress] 
         public string Email { get; set; }
-        public DateTime DateOfBirth { get; set; }
+        [MinimumAge(16)]
+        public DateTime? DateOfBirth { get; set; }
         public string Address { get; set; }
+        [NationalIdValidation]
         public string IdentityNumber { get; set; }
-        public string IdentityImageUrl { get; set; } 
+        [AllowedImageExtensions]
+        public IFormFile IdentityImage { get; set; }
         public string Occupation { get; set; }
         public string CompanyName { get; set; }
         public bool? ReciveEmails { get; set; }
-        public InvestorType InvestorTypeId { get; set; }
-        public string InvestorType {  get; set; } 
+        [Range(1, 2, ErrorMessage = "Invalid InvestoreType value.")]
+        public InvestorType? InvestorType { get; set; }
     }
 }

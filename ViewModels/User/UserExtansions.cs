@@ -45,6 +45,7 @@ namespace ViewModels
                 LastName = user.LastName,
                 MiddleName = user.MiddleName,
                 Occupation = user.Occupation,
+                ReciveEmails = user.ReciveEmails,
                 PhoneNumber = user.PhoneNumber,
                 UserId = user.Id,
             };

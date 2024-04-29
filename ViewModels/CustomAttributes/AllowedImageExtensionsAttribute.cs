@@ -22,7 +22,7 @@ namespace ViewModels
         {
             if (value == null)
             {
-                return new ValidationResult("Identity image requierd");
+                return ValidationResult.Success;
             }
             IFormFile file = value as IFormFile;
             if (file == null)

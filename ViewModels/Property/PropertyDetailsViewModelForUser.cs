@@ -14,7 +14,7 @@ namespace ViewModels
         public string City { get; set; }
         public string Location { get; set; }
         public double UnitPrice { get; set; }
-        public string Description {  get; set; }
+        public string Description {  get; set; } 
         public double? MaintenanceCost { get; set; }
         public double? MaintenanceCostNumerical {  get; set; }
         public double? TransactionFees { get; set; }

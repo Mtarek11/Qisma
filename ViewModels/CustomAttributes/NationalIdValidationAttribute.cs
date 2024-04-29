@@ -13,7 +13,7 @@ namespace ViewModels
         {
             if (value == null || string.IsNullOrWhiteSpace(value.ToString()))
             {
-                return new ValidationResult("Identity number is requierd.");
+                return ValidationResult.Success;
             }
             string nationalId = value.ToString();
             if (nationalId.Length < 9 || !nationalId.All(char.IsDigit))

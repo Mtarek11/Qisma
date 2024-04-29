@@ -95,7 +95,7 @@ namespace ViewModels
                     SVG = propertyFacility.Facility.SVG,
                     Description = propertyFacility.Description,
                     PropertyFacilityId = propertyFacility.Id,
-                }).ToList(),
+                }).OrderBy(i => i.PropertyFacilityId).ToList(),
             };
         }
         public static Expression<Func<Models.Property, PropertyDetailsViewModelForUser>> ToPropertyDetailsViewModelForUserExpression()
@@ -129,7 +129,7 @@ namespace ViewModels
                 IsDeleted = false,
                 Status = i.PropertyStatus.Where(i => i.To == null).Select(i => i.Status).FirstOrDefault(),
                 PropertyImages = i.PropertyImages.Select(image => image.ImageUrl).ToList(),
-                PropertyFacilities = i.PropertyFacilities.Select(propertyFacility => new PropertyFacilityViewModelForUser()
+                PropertyFacilities = i.PropertyFacilities.OrderBy(i => i.Id).Select(propertyFacility => new PropertyFacilityViewModelForUser()
                 {
                     SVG = propertyFacility.Facility.SVG,
                     Description = propertyFacility.Description,

@@ -114,7 +114,6 @@ namespace Lofty.Controllers
         [Authorize(Roles = "Customer")]
         [HttpGet("api/User/GetPortfolio")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<UserPortfolioViewModel>))]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<UserPortfolioViewModel>))]
         public async Task<IActionResult> GetUserPortfolioAsync()
         {
             Claim userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -140,6 +139,38 @@ namespace Lofty.Controllers
                 });
             }
 
+        }
+        /// <summary>
+        /// Update user porfile informations
+        /// </summary>
+        /// <param name="ViewModel"></param>
+        /// <returns></returns>
+        [Authorize(Roles = "Customer")]
+        [HttpPut("api/User/UpdateInformation")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(APIResult<string>))]
+        public async Task<IActionResult> UpdateUserProfileInformationAsync([FromForm] UpdateUserInformationViewModel ViewModel)
+        {
+            if (ModelState.IsValid)
+            {
+                Claim userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                string userId = userIdClaim.Value;
+                APIResult<string> result = await accountManager.UpdateUserInformationAsync(ViewModel, userId);
+                return new JsonResult(result)
+                {
+                    StatusCode = result.StatusCode
+                };
+            }
+            else
+            {
+                return Unauthorized(new APIResult<UserDataViewModel>()
+                {
+                    Message = string.Join("; ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage)),
+                    IsSucceed = false,
+                    StatusCode = 401
+                });
+            }
         }
     }
 }

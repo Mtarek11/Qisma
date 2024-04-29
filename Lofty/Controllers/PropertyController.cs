@@ -27,16 +27,13 @@ namespace Lofty.Controllers
         /// <param name="CityId"></param>
         /// <param name="PropertyType"></param>
         /// <param name="MinUnitPrice"></param>
-        /// <param name="MaxUnitPrice"></param>
         /// <param name="MinSharePrice"></param>
-        /// <param name="MaxSharePrice"></param>
         /// <returns></returns>
         [HttpGet("api/Property/GetAll")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<PaginationViewModel<PropertyViewModelInListView>>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
         public async Task<IActionResult> GetAllPropertiesForUserAsync([FromQuery, Required] int PageNumber = 0, [FromQuery, Required] int PageSize = 10, [FromQuery] int? GovernorateId = null,
-           [FromQuery] int? CityId = null, [FromQuery] Models.Type? PropertyType = null, [FromQuery] double? MinUnitPrice = null, [FromQuery] double? MaxUnitPrice = null,
-              [FromQuery] double? MinSharePrice = null, [FromQuery] double? MaxSharePrice = null)
+           [FromQuery] int? CityId = null, [FromQuery] Models.Type? PropertyType = null, [FromQuery] double? MinUnitPrice = null, [FromQuery] double? MinSharePrice = null)
         { 
             if (ModelState.IsValid)
             {
@@ -60,7 +57,7 @@ namespace Lofty.Controllers
                     }
                 }
                 PaginationViewModel<PropertyViewModelInListView> properties = await propertyManager.GetAllPropertiesForUserAsync(PageNumber, PageSize, GovernorateId, CityId, PropertyType,
-                   MinUnitPrice, MaxUnitPrice, MinSharePrice, MaxSharePrice, isAdmin);
+                   MinUnitPrice, MinSharePrice, isAdmin);
                 if (properties.ItemsList.Count > 0)
                 {
                     return Ok(new APIResult<PaginationViewModel<PropertyViewModelInListView>>()
@@ -106,19 +103,31 @@ namespace Lofty.Controllers
             if (ModelState.IsValid)
             {
                 string userId = null;
+                bool isAdmin = false;
                 if (User != null)
                 {
                     if (User.Identity.IsAuthenticated)
                     {
                         Claim userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                        ClaimsIdentity claimsIdentity = User.Identity as ClaimsIdentity;
+                        if (claimsIdentity?.Claims != null)
+                        {
+                            IEnumerable<string> roles = claimsIdentity.FindAll(ClaimTypes.Role).Select(c => c.Value);
+                            foreach (string role in roles)
+                            {
+                                if (role == "Admin")
+                                {
+                                    isAdmin = true;
+                                }
+                            }
+                        }
                         if (userIdClaim != null)
                         {
                             userId = userIdClaim.Value; 
                         }
                     }
                 }
-                
-                APIResult<PropertyDetailsViewModelForUser> result = await propertyManager.GetPropertyDetailsByIdForUserAsync(PropertyId, userId);
+                APIResult<PropertyDetailsViewModelForUser> result = await propertyManager.GetPropertyDetailsByIdForUserAsync(PropertyId, userId, isAdmin);
                 return new JsonResult(result)
                 {
                     StatusCode = result.StatusCode

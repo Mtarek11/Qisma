@@ -287,7 +287,7 @@ namespace Reposatiory
             }
         }
         public async Task<PaginationViewModel<PropertyViewModelInListView>> GetAllPropertiesForUserAsync(int pageNumber, int pageSize, int? governorateId, int? cityId,
-            Models.Type? propertyType, double? minUnitPrice, double? maxUnitPrice, double? minSharePrice, double? maxSharePrice, bool isAdmin)
+            Models.Type? propertyType, double? minUnitPrice, double? minSharePrice, bool isAdmin)
         {
             int itemsToSkip = pageNumber * pageSize;
             int totalPageNumbers = 0;
@@ -317,17 +317,9 @@ namespace Reposatiory
             {
                 query = query.Where(i => i.PropertyUnitPrices.Where(i => i.To == null).Select(i => i.UnitPrice).FirstOrDefault() >= minUnitPrice);
             }
-            if (maxUnitPrice != null)
-            {
-                query = query.Where(i => i.PropertyUnitPrices.Where(i => i.To == null).Select(i => i.UnitPrice).FirstOrDefault() <= maxUnitPrice);
-            }
             if (minSharePrice != null)
             {
                 query = query.Where(i => i.SharePrice >= minSharePrice);
-            }
-            if (maxSharePrice != null)
-            {
-                query = query.Where(i => i.SharePrice <= maxSharePrice);
             }
             List<PropertyViewModelInListView> properties = await query.OrderBy(i => i.Id).Select(PropertyExtansions.ToPropertyViewModelInListExpression(isAdmin)).Skip(itemsToSkip).Take(pageSize).ToListAsync();
             if (properties.Count > 0)
@@ -344,31 +336,13 @@ namespace Reposatiory
             };
             return paginationViewModel;
         }
-        public async Task<APIResult<PropertyDetailsViewModelForUser>> GetPropertyDetailsByIdForUserAsync(string propertyId, string userId)
+        public async Task<APIResult<PropertyDetailsViewModelForUser>> GetPropertyDetailsByIdForUserAsync(string propertyId, string userId, bool isAdmin)
         {
             APIResult<PropertyDetailsViewModelForUser> aPIResult = new();
-            PropertyDetailsViewModelForUser property = await GetAll().Where(i => i.Id == propertyId && i.IsDeleted == false)
-                .Select(PropertyExtansions.ToPropertyDetailsViewModelForUserExpression()).FirstOrDefaultAsync();
-            if (property != null && userId != null)
-            { 
-                bool buyerTracker = await buyTrackerManager.ProceedWithBuyAsync(userId, propertyId);
-                if (buyerTracker)
-                { 
-                    aPIResult.Data = property;  
-                    aPIResult.IsSucceed = true;
-                    aPIResult.StatusCode = 200;
-                    aPIResult.Message = "Get property details";
-                    return aPIResult;
-                }
-                else
-                {
-                    aPIResult.IsSucceed = false;
-                    aPIResult.StatusCode = 401;
-                    aPIResult.Message = "User not found";
-                    return aPIResult;
-                }
-            }else if(property != null && userId == null)
+            if (isAdmin)
             {
+                PropertyDetailsViewModelForUser property = await GetAll().Where(i => i.Id == propertyId)
+                 .Select(PropertyExtansions.ToPropertyDetailsViewModelForUserExpression()).FirstOrDefaultAsync();
                 aPIResult.Data = property;
                 aPIResult.IsSucceed = true;
                 aPIResult.StatusCode = 200;
@@ -377,11 +351,43 @@ namespace Reposatiory
             }
             else
             {
-                aPIResult.Message = "Property not found";
-                aPIResult.IsSucceed = false;
-                aPIResult.StatusCode = 404;
-                return aPIResult;
-            } 
+                PropertyDetailsViewModelForUser property = await GetAll().Where(i => i.Id == propertyId && i.IsDeleted == false)
+                .Select(PropertyExtansions.ToPropertyDetailsViewModelForUserExpression()).FirstOrDefaultAsync();
+                if (property != null && userId != null)
+                {
+                    bool buyerTracker = await buyTrackerManager.ProceedWithBuyAsync(userId, propertyId);
+                    if (buyerTracker)
+                    {
+                        aPIResult.Data = property;
+                        aPIResult.IsSucceed = true;
+                        aPIResult.StatusCode = 200;
+                        aPIResult.Message = "Get property details";
+                        return aPIResult;
+                    }
+                    else
+                    {
+                        aPIResult.IsSucceed = false;
+                        aPIResult.StatusCode = 401;
+                        aPIResult.Message = "User not found";
+                        return aPIResult;
+                    }
+                }
+                else if (property != null && userId == null)
+                {
+                    aPIResult.Data = property;
+                    aPIResult.IsSucceed = true;
+                    aPIResult.StatusCode = 200;
+                    aPIResult.Message = "Get property details";
+                    return aPIResult;
+                }
+                else
+                {
+                    aPIResult.Message = "Property not found";
+                    aPIResult.IsSucceed = false;
+                    aPIResult.StatusCode = 404;
+                    return aPIResult;
+                }
+            }
         }
         public async Task<PropertyDetailsViewModelForAdmin> GetPropertyDetailsByIdForAdminAsync(string propertyId)
         {
