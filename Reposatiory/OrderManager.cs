@@ -120,8 +120,8 @@ namespace Reposatiory
                 order.OrderNumber = propertyId + order.Id + user.FirstName.First() + user.LastName.Last() + user.DateOfBirth.Day.ToString() + user.DateOfBirth.Month.ToString();
                 Update(order);
                 await unitOfWork.CommitAsync();
-                string customerSupportEmail = await aboutQismaManager.GetAboutQismaContentAsync(1);
-                string customerSupportPhoneNumber = await aboutQismaManager.GetAboutQismaContentAsync(2);
+                string customerSupportEmail = await aboutQismaManager.GetAll().Where(i => i.Id == 1).Select(i => i.Content).FirstOrDefaultAsync();
+                string customerSupportPhoneNumber = await aboutQismaManager.GetAll().Where(i => i.Id == 2).Select(i => i.Content).FirstOrDefaultAsync();
                 string templatePath = "Order_Confirmation_Form.pdf";
                 string outputPath = $"Content/Orders_PDF/{order.OrderNumber}.pdf";
                 using (PdfReader reader = new PdfReader(templatePath))

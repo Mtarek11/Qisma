@@ -60,6 +60,7 @@ namespace WebApis
             appbuilder.Services.AddScoped(typeof(PropertyRentalYieldManager));
             appbuilder.Services.AddScoped(typeof(AboutQismaManager));
             appbuilder.Services.AddScoped(typeof(PropertyStatusManager));
+            appbuilder.Services.AddScoped(typeof(FAQManager));
             //appbuilder.Services.AddHostedService<OrderConfirmationBackgroundService>();
             appbuilder.Services.AddControllers(
                 con => con.Filters.Add<ExceptionFilter>()

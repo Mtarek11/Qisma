@@ -12,25 +12,43 @@ namespace Reposatiory
     public class AboutQismaManager(LoftyContext _mydB, UnitOfWork _unitOfWork) : MainManager<AboutQisma>(_mydB)
     {
         private readonly UnitOfWork unitOfWork = _unitOfWork;
-        public async Task<string> GetAboutQismaContentAsync(int id)
+        public async Task<SupportViewModel> GetSupportContactInformationsAsync()
         {
-            string content = await GetAll().Where(i => i.Id == id).Select(i => i.Content).FirstOrDefaultAsync();
-            return content;
+            SupportViewModel viewModel = new SupportViewModel();
+            List<AboutQisma> aboutQisma = await GetAll().Where(i => i.Id == 1 && i.Id == 2).ToListAsync();
+            viewModel.SupportEmail = aboutQisma.Where(i => i.Id == 1).Select(i => i.Content).FirstOrDefault();
+            viewModel.SupportPhoneNumber = aboutQisma.Where(i => i.Id == 2).Select(i => i.Content).FirstOrDefault();
+            return viewModel;
         }
-        public async Task<bool> UpdateAboutQismaContent(int id, string content)
+        public async Task<bool> UpdateSupportContactInformationsAsync(SupportViewModel viewModel)
         {
-            AboutQisma aboutQisma = new()
+            bool isUpdated = false;
+            if (viewModel.SupportEmail != null)
             {
-                Id = id
-            };
-            PartialUpdate(aboutQisma);
-            aboutQisma.Content = content;
-            try
+                AboutQisma supportEmail = new()
+                {
+                    Id = 1
+                };
+                PartialUpdate(supportEmail);
+                supportEmail.Content = viewModel.SupportEmail;
+                isUpdated = true;
+            }
+            if (viewModel.SupportPhoneNumber != null)
+            {
+                AboutQisma supportPhoneNumber = new()
+                {
+                    Id = 2
+                };
+                PartialUpdate(supportPhoneNumber);
+                supportPhoneNumber.Content = viewModel.SupportPhoneNumber;
+                isUpdated = true;
+            }
+            if (isUpdated)
             {
                 await unitOfWork.CommitAsync();
                 return true;
             }
-            catch (DbUpdateException)
+            else
             {
                 return false;
             }

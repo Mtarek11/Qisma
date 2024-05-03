@@ -13,8 +13,8 @@ namespace Models
         public static void DataSeed(this ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<IdentityRole>().HasData(
-               new IdentityRole { Name = "Admin", NormalizedName = "ADMIN" },
-               new IdentityRole { Name = "Customer", NormalizedName = "CUSTOMER" });
+               new IdentityRole { Id = "939f32c4-3d7b-41ff-ad9e-722e5aa24acf", Name = "Admin", NormalizedName = "ADMIN" },
+               new IdentityRole { Id = "4e7c65bd-7c29-49fc-b5f3-f0b79dc876e7", Name = "Customer", NormalizedName = "CUSTOMER" });
             modelBuilder.Entity<AboutQisma>().HasData(
               new AboutQisma { Id = 1, Content = "Support@qisma.com"},
               new AboutQisma { Id = 2, Content = "+20 100 123 654 8" });
