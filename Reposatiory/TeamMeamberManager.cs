@@ -38,9 +38,14 @@ namespace Reposatiory
             await AddAsync(teamMember);
             await unitOfWork.CommitAsync();
         }
-        public async Task<List<TeamMember>> GetAllTeamMembersAsync()
+        public async Task<List<TeamMember>> GetAllManagersAsync()
         {
-            List<TeamMember> teamMembers = await GetAll().AsNoTracking().ToListAsync();
+            List<TeamMember> teamMembers = await GetAll().Where(i => i.IsManager).AsNoTracking().ToListAsync();
+            return teamMembers;
+        }
+        public async Task<List<TeamMember>> GetAllMembersAsync()
+        {
+            List<TeamMember> teamMembers = await GetAll().Where(i => !i.IsManager).AsNoTracking().ToListAsync();
             return teamMembers;
         }
         public async Task<APIResult<string>> UpdateTeamMemberAsync(UpdateTeamMemberViewModel viewModel)
@@ -99,11 +104,6 @@ namespace Reposatiory
             if (viewModel.LinkedInLink != null)
             {
                 teamMember.LinkedInLink = viewModel.LinkedInLink;
-                isUpdated = true;
-            }
-            if (viewModel.IsManager != null)
-            {
-                teamMember.IsManager = (bool)viewModel.IsManager;
                 isUpdated = true;
             }
             if (isUpdated)

@@ -152,11 +152,40 @@ namespace Lofty.Controllers
         /// Get all team members
         /// </summary>
         /// <returns></returns>
-        [HttpGet("api/AboutQisma/GetAllTeamMembers")]
+        [HttpGet("api/AboutQisma/GetAllManagers")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<List<TeamMember>>))]
-        public async Task<IActionResult> GetAllTeamMembersAsync()
+        public async Task<IActionResult> GetAllManagersAsync()
         {
-            List<TeamMember> teamMembers = await teamMeamberManager.GetAllTeamMembersAsync();
+            List<TeamMember> teamMembers = await teamMeamberManager.GetAllManagersAsync();
+            if (teamMembers.Count > 0)
+            {
+                return Ok(new APIResult<List<TeamMember>>()
+                {
+                    Data = teamMembers,
+                    IsSucceed = true,
+                    Message = "Managers",
+                    StatusCode = 200
+                });
+            }
+            else
+            {
+                return Ok(new APIResult<List<TeamMember>>()
+                {
+                    IsSucceed = false,
+                    Message = "No managers found",
+                    StatusCode = 200
+                });
+            }
+        }
+        /// <summary>
+        /// Get all members
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("api/AboutQisma/GetAllMembers")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<List<TeamMember>>))]
+        public async Task<IActionResult> GetAllMembersAsync()
+        {
+            List<TeamMember> teamMembers = await teamMeamberManager.GetAllMembersAsync();
             if (teamMembers.Count > 0)
             {
                 return Ok(new APIResult<List<TeamMember>>()
@@ -189,7 +218,7 @@ namespace Lofty.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
         public async Task<IActionResult> UpdateTeamMembersAsync([FromForm] UpdateTeamMemberViewModel viewModel)
         {
-            if (ModelState.IsValid)
+            if (ModelState.IsValid) 
             {
                 APIResult<string> result = await teamMeamberManager.UpdateTeamMemberAsync(viewModel);
                 return new JsonResult(result)
