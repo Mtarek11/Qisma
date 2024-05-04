@@ -24,6 +24,8 @@ namespace Models
         public DbSet<AboutQisma> AboutQisma {  get; set; }
         public DbSet<PropertyStatus> PropertyStatuses {  get; set; }
         public DbSet<FAQ> FAQs {  get; set; }
+        public DbSet<Blog> Blogs {  get; set; }
+        public DbSet<TeamMember> TeamMembers {  get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfiguration(new FacilityConfigurations());
@@ -40,6 +42,8 @@ namespace Models
             modelBuilder.ApplyConfiguration(new AboutQismaConfigurations());
             modelBuilder.ApplyConfiguration(new PropertyStatusConfigurations());
             modelBuilder.ApplyConfiguration(new FAQConfigurations());
+            modelBuilder.ApplyConfiguration(new BlogConfigurations());
+            modelBuilder.ApplyConfiguration(new TeamMemberConfigurations());
             modelBuilder.DataSeed();
             base.OnModelCreating(modelBuilder);
         }

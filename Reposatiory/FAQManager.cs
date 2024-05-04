@@ -39,14 +39,9 @@ namespace Reposatiory
                 return false;
             }
         }
-        public async Task<List<FAQViewModel>> GetAllFAQAsync()
+        public async Task<List<FAQ>> GetAllFAQAsync()
         {
-            List<FAQViewModel> FAQs = await GetAll().Select(i => new FAQViewModel()
-            {
-                Id = i.Id,
-                Question = i.Question,
-                Answer = i.Answer
-            }).ToListAsync();
+            List<FAQ> FAQs = await GetAll().AsNoTracking().ToListAsync();
             return FAQs;
         }
     }

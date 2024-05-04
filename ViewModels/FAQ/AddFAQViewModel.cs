@@ -10,7 +10,7 @@ namespace ViewModels
     public class AddFAQViewModel
     {
         [Required]
-        public string Qusetion {  get; set; }
+        public string Question {  get; set; }
         [Required]
         public string Answer {  get; set; }
     }

@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Models;
 using Reposatiory;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations; 
 using System.Linq;
 using System.Threading.Tasks;
 using ViewModels;
@@ -28,9 +29,9 @@ namespace Lofty.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
         public async Task<IActionResult> AddFAQAsync([FromBody] AddFAQViewModel viewModel)
         {
-            if (ModelState.IsValid)
+            if (ModelState.IsValid) 
             {
-                await fAQManager.AddFAQAsync(viewModel.Qusetion, viewModel.Answer);
+                await fAQManager.AddFAQAsync(viewModel.Question, viewModel.Answer);
                 return Ok(new APIResult<string>()
                 {
                     IsSucceed = true,
@@ -96,14 +97,14 @@ namespace Lofty.Controllers
         /// Get all FAQs
         /// </summary>
         /// <returns></returns>
-        [HttpGet("api/Dashboard/FAQ/GetAll")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<List<FAQViewModel>>))]
+        [HttpGet("api/FAQ/GetAll")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<List<FAQ>>))]
         public async Task<IActionResult> GetAllFAQAsync()
         {
-            List<FAQViewModel> FAQs = await fAQManager.GetAllFAQAsync();
+            List<FAQ> FAQs = await fAQManager.GetAllFAQAsync();
             if (FAQs.Count > 0)
             {
-                return Ok(new APIResult<List<FAQViewModel>>()
+                return Ok(new APIResult<List<FAQ>>()
                 {
                     Data = FAQs,
                     IsSucceed = true,
@@ -113,7 +114,7 @@ namespace Lofty.Controllers
             }
             else
             {
-                return Ok(new APIResult<List<FAQViewModel>>()
+                return Ok(new APIResult<List<FAQ>>()
                 {
 
                     IsSucceed = false,

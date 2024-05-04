@@ -17,7 +17,11 @@ namespace Models
                new IdentityRole { Id = "4e7c65bd-7c29-49fc-b5f3-f0b79dc876e7", Name = "Customer", NormalizedName = "CUSTOMER" });
             modelBuilder.Entity<AboutQisma>().HasData(
               new AboutQisma { Id = 1, Content = "Support@qisma.com"},
-              new AboutQisma { Id = 2, Content = "+20 100 123 654 8" });
+              new AboutQisma { Id = 2, Content = "+20 100 123 654 8" }
+              //new AboutQisma { Id = 3, Content = "About us 1st frame will be here" },
+              //new AboutQisma { Id = 4, Content = "About us 2nd frame title will be here" },
+              //new AboutQisma { Id = 5, Content = "About us 2nd frame description will be here" }
+              );
             modelBuilder.Entity<Facility>().HasData(
                new Facility { Id = 1, SVG = "furniture.svg" },
                new Facility { Id = 2, SVG = "snow-icon.svg" },
