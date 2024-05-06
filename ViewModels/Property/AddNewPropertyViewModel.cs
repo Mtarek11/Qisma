@@ -18,7 +18,7 @@ namespace ViewModels
         [Required] 
         public int CityId {  get; set; }
         // Numerical
-        [Required] 
+        [Required, Range(1000000, double.MaxValue, ErrorMessage = "Unit price must be at least 1,000,000.")] 
         public double UnitPrice { get; set; }
         [Required]
         public string Description {  get; set; }
@@ -31,7 +31,7 @@ namespace ViewModels
         [Required]
         public int MinNumberOfShares { get; set; }
         // Numerical
-        [Required]
+        [Required, Range(50000, double.MaxValue, ErrorMessage = "Share price must be at least 50,000.")]
         public double SharePrice { get; set; }
         // Percentage
         [Required]

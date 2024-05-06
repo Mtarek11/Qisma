@@ -55,13 +55,13 @@ namespace Lofty.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("api/Blog/GetAll")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<List<Blog>>))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<List<BlogViewModel>>))]
         public async Task<IActionResult> GetAllBlogsAsync()
         {
-            List<Blog> blogs = await blogManager.GetAllBlogsAsync();
+            List<BlogViewModel> blogs = await blogManager.GetAllBlogsAsync();
             if (blogs.Count > 0)
             {
-                return Ok(new APIResult<List<Blog>>()
+                return Ok(new APIResult<List<BlogViewModel>>()
                 {
                     Data = blogs,
                     IsSucceed = true,
@@ -71,7 +71,7 @@ namespace Lofty.Controllers
             }
             else
             {
-                return Ok(new APIResult<List<Blog>>()
+                return Ok(new APIResult<List<BlogViewModel>>()
                 {
                     IsSucceed = false,
                     Message = "No blogs found",
@@ -80,10 +80,54 @@ namespace Lofty.Controllers
             }
         }
         /// <summary>
+        /// Get blog by id
+        /// </summary>
+        /// <param name="BlogId"></param>
+        /// <returns></returns>
+        [HttpGet("api/Blog/GetById")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<Blog>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<string>))]
+        public async Task<IActionResult> GetBlogByIdAsync([FromQuery, Required] int BlogId)
+        {
+            if (ModelState.IsValid)
+            {
+                Blog blog = await blogManager.GetBlogByIdAsync(BlogId);
+                if (blog != null)
+                {
+                    return Ok(new APIResult<Blog>()
+                    {
+                        Data = blog,
+                        IsSucceed = true,
+                        Message = "Blog",
+                        StatusCode = 200
+                    });
+                }
+                else
+                {
+                    return NotFound(new APIResult<string>()
+                    {
+                        IsSucceed = false,
+                        Message = "Blog not found",
+                        StatusCode = 404
+                    });
+                }
+            }
+            else
+            {
+                return BadRequest(new APIResult<string>()
+                {
+                    Message = string.Join("; ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage)),
+                    IsSucceed = false,
+                    StatusCode = 400
+                });
+            }
+        }
+        /// <summary>
         /// Update blog
         /// </summary>
         /// <param name="viewModel"></param>
-        /// <returns></returns>
+        /// <returns></returns> 
         [Authorize(Roles = "Admin")]
         [HttpPut("api/Dashboard/Blog/Update")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
@@ -141,7 +185,7 @@ namespace Lofty.Controllers
                         Message = "Blog not found",
                         StatusCode = 404
                     });
-                } 
+                }
             }
             else
             {

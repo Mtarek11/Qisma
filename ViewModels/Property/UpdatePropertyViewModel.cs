@@ -17,6 +17,7 @@ namespace ViewModels
         public int? GovernorateId { get; set; }
         public int? CityId { get; set; }
         // Numerical
+        [Range(1000000, double.MaxValue, ErrorMessage = "Unit price must be at least 1,000,000.")]
         public double? UnitPrice { get; set; }
         public string Description { get; set; }
         // Numerical and Percentage
@@ -26,6 +27,7 @@ namespace ViewModels
         public int? NumberOfShares { get; set; }
         public int? MinNumberOfShares {  get; set; }
         // Numerical
+        [Range(50000, double.MaxValue, ErrorMessage = "Share price must be at least 50,000.")]
         public double? SharePrice { get; set; }
         // Percentage
         public double? AnnualRentalYield { get; set; }

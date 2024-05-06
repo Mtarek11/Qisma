@@ -13,7 +13,7 @@ namespace Reposatiory
 {
     public class BlogManager(LoftyContext _mydB, UnitOfWork _unitOfWork) : MainManager<Blog>(_mydB)
     {
-        private readonly UnitOfWork unitOfWork = _unitOfWork;
+        private readonly UnitOfWork unitOfWork = _unitOfWork; 
         public async Task AddBlogAsync(AddBlogViewModel viewModel)
         {
             Blog blog = new()
@@ -33,10 +33,21 @@ namespace Reposatiory
             await AddAsync(blog);
             await unitOfWork.CommitAsync();
         }
-        public async Task<List<Blog>> GetAllBlogsAsync()
+        public async Task<List<BlogViewModel>> GetAllBlogsAsync()
         {
-            List<Blog> blogs = await GetAll().AsNoTracking().ToListAsync();
+            List<BlogViewModel> blogs = await GetAll().Select(i => new BlogViewModel()
+            {
+                Id = i.Id,
+                Title = i.Title,
+                ImageUrl = i.ImageUrl,
+                Link = i.Link,
+            }).ToListAsync();
             return blogs;
+        }
+        public async Task<Blog> GetBlogByIdAsync(int blogId)
+        {
+            Blog blog = await GetAll().Where(i => i.Id == blogId).AsNoTracking().FirstOrDefaultAsync();
+            return blog;
         }
         public async Task<APIResult<string>> UpdateBlogAsync(UpdateBlogViewModel viewModel)
         {
