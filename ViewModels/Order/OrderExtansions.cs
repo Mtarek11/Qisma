@@ -31,7 +31,7 @@ namespace ViewModels
                 },
                 Property = new PropertyViewModelInListView()
                 {
-                    Address = i.Property.Location,
+                    Address = i.Property.Title,
                     ProjectedRentalYield = i.Property.PropertyRentalYields.Where(i => i.To == null).Select(i => i.RentalYield).FirstOrDefault(),
                     ProjectedAnnualReturn = i.Property.PropertyRentalYields.Where(i => i.To == null).Select(i => i.RentalYield).FirstOrDefault() + i.Property.AnnualPriceAppreciation,
                     City = i.Property.City.NameEn,
@@ -85,7 +85,7 @@ namespace ViewModels
                 },
                 Property = new PropertyViewModelInListView()
                 {
-                    Address = i.Property.Location,
+                    Address = i.Property.Title,
                     ProjectedRentalYield = i.Property.PropertyRentalYields.Where(i => i.To == null).Select(i => i.RentalYield).FirstOrDefault(),
                     ProjectedAnnualReturn = i.Property.PropertyRentalYields.Where(i => i.To == null).Select(i => i.RentalYield).FirstOrDefault() + i.Property.AnnualPriceAppreciation,
                     City = i.Property.City.NameEn,

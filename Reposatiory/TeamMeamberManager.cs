@@ -11,8 +11,9 @@ using ViewModels;
 
 namespace Reposatiory
 {
-    public class TeamMeamberManager(LoftyContext _mydB, UnitOfWork _unitOfWork) : MainManager<TeamMember>(_mydB)
+    public class TeamMeamberManager(LoftyContext _mydB, UnitOfWork _unitOfWork, AboutQismaManager _aboutQismaManager) : MainManager<TeamMember>(_mydB)
     {
+        private readonly AboutQismaManager aboutQismaManager = _aboutQismaManager;
         private readonly UnitOfWork unitOfWork = _unitOfWork;
         public async Task AddTeamMemberAsync(AddTeamMemberViewModel viewModel)
         {
@@ -38,15 +39,28 @@ namespace Reposatiory
             await AddAsync(teamMember);
             await unitOfWork.CommitAsync();
         }
-        public async Task<List<TeamMember>> GetAllManagersAsync()
+        public async Task<TeamViewModel> GetAllManagersAsync()
         {
+            TeamViewModel teamViewModel = new();
             List<TeamMember> teamMembers = await GetAll().Where(i => i.IsManager).AsNoTracking().ToListAsync();
+            string title = await aboutQismaManager.GetManagerTitleAsync();
+            teamViewModel.TeamMembers = teamMembers;
+            teamViewModel.Title = title;
+            return teamViewModel;
+        }
+        public async Task<List<TeamMember>> GetAllTeamForAboutUsAsync()
+        {
+            List<TeamMember> teamMembers = await GetAll().AsNoTracking().ToListAsync();
             return teamMembers;
         }
-        public async Task<List<TeamMember>> GetAllMembersAsync()
+        public async Task<TeamViewModel> GetAllMembersAsync()
         {
+            TeamViewModel teamViewModel = new();
             List<TeamMember> teamMembers = await GetAll().Where(i => !i.IsManager).AsNoTracking().ToListAsync();
-            return teamMembers;
+            string title = await aboutQismaManager.GetTeamMemberTitleAsync();
+            teamViewModel.TeamMembers = teamMembers;
+            teamViewModel.Title = title;
+            return teamViewModel;
         }
         public async Task<APIResult<string>> UpdateTeamMemberAsync(UpdateTeamMemberViewModel viewModel)
         {

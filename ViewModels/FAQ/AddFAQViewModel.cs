@@ -13,5 +13,7 @@ namespace ViewModels
         public string Question {  get; set; }
         [Required]
         public string Answer {  get; set; }
+        [Required]
+        public int Number {  get; set; }
     }
 }

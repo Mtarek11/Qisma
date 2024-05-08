@@ -15,13 +15,14 @@ namespace Reposatiory
     {
         private readonly UnitOfWork unitOfWork = _unitOfWork; 
         public async Task AddBlogAsync(AddBlogViewModel viewModel)
-        {
+        { 
             Blog blog = new()
             {
                 Description = viewModel.Description,
                 ImageUrl = Guid.NewGuid().ToString() + "_" + viewModel.Image.FileName,
                 Link = viewModel.Link,
-                Title = viewModel.Title
+                Title = viewModel.Title,
+                ImageLink = viewModel.ImageLink
             };
             FileStream fileStream = new FileStream(
                     Path.Combine(
@@ -40,7 +41,9 @@ namespace Reposatiory
                 Id = i.Id,
                 Title = i.Title,
                 ImageUrl = i.ImageUrl,
+                ImageLink = i.ImageLink,
                 Link = i.Link,
+                
             }).ToListAsync();
             return blogs;
         }
@@ -67,6 +70,11 @@ namespace Reposatiory
             if (viewModel.Title != null)
             {
                 blog.Title = viewModel.Title;
+                isUpdated = true;
+            }
+            if (viewModel.ImageLink != null)
+            {
+                blog.ImageLink = viewModel.ImageLink;
                 isUpdated = true;
             }
             if (viewModel.Description != null)

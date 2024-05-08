@@ -17,10 +17,22 @@ namespace Models
                new IdentityRole { Id = "4e7c65bd-7c29-49fc-b5f3-f0b79dc876e7", Name = "Customer", NormalizedName = "CUSTOMER" });
             modelBuilder.Entity<AboutQisma>().HasData(
               new AboutQisma { Id = 1, Content = "Support@qisma.com"},
-              new AboutQisma { Id = 2, Content = "+20 100 123 654 8" }
-              //new AboutQisma { Id = 3, Content = "About us 1st frame will be here" },
-              //new AboutQisma { Id = 4, Content = "About us 2nd frame title will be here" },
-              //new AboutQisma { Id = 5, Content = "About us 2nd frame description will be here" }
+              new AboutQisma { Id = 2, Content = "+20 100 123 654 8" },
+              new AboutQisma { Id = 3, Content = "About us 1st frame will be here" },
+              new AboutQisma { Id = 4, Content = "About us 2nd frame title will be here" },
+              new AboutQisma { Id = 5, Content = "About us 2nd frame description will be here" },
+              new AboutQisma { Id = 6, Content = "Managers title will be here" },
+              new AboutQisma { Id = 7, Content = "Team members title will be here" },
+              new AboutQisma { Id = 8, Content = "About us first frame image" },
+              new AboutQisma { Id = 9, Content = "Third frame title will be here" },
+              new AboutQisma { Id = 10, Content = "First section title will be here" },
+              new AboutQisma { Id = 11, Content = "First section description will be here" },
+              new AboutQisma { Id = 12, Content = "Second section title will be here" },
+              new AboutQisma { Id = 13, Content = "Second section description will be here" },
+              new AboutQisma { Id = 14, Content = "Third section title will be here" },
+              new AboutQisma { Id = 15, Content = "Third section Description will be here" },
+              new AboutQisma { Id = 16, Content = "Fourth section title will be here" },
+              new AboutQisma { Id = 17, Content = "Fourth section description will be here" }
               );
             modelBuilder.Entity<Facility>().HasData(
                new Facility { Id = 1, SVG = "furniture.svg" },

@@ -8,7 +8,8 @@ namespace ViewModels
 { 
     public class AddPropertyFacilityViewModel
     {
-        public int FacilityId { get; set; }
+        public int? FacilityId { get; set; }
         public string Description { get; set; }
+        public int? Number {  get; set; }
     }
 }

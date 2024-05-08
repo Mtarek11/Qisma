@@ -15,7 +15,7 @@ namespace ViewModels
         {
             return new Models.Property
             {
-                Location = viewModel.Location,
+                Title = viewModel.Location,
                 Description = viewModel.Description,
                 MaintenanceCost = viewModel.MaintenanceCost,
                 TransactionFees = viewModel.TransactionFees,
@@ -38,7 +38,7 @@ namespace ViewModels
         {
             return i => new PropertyViewModelInListView
             {
-                Address = i.Location,
+                Address = i.Title,
                 ProjectedRentalYield = i.PropertyRentalYields.Where(i => i.To == null).Select(i => i.RentalYield).FirstOrDefault(),
                 ProjectedAnnualReturn = i.PropertyRentalYields.Where(i => i.To == null).Select(i => i.RentalYield).FirstOrDefault() + i.AnnualPriceAppreciation,
                 City = i.City.NameEn,
@@ -68,7 +68,7 @@ namespace ViewModels
                 DeliveryInstallment = property.DeliveryInstallment,
                 DownPayment = property.DownPayment,
                 Governorate = property.Governorate.NameEn,
-                Location = property.Location,
+                Location = property.Title,
                 MaintenaceInstallment = property.MaintenaceInstallment,
                 MaintenanceCost = property.MaintenanceCost,
                 MaintenanceCostNumerical = property.MaintenanceCost != null ? property.MaintenanceCost * property.PropertyUnitPrices.Where(i => i.To == null).Select(i => i.UnitPrice).FirstOrDefault() : null,
@@ -95,7 +95,8 @@ namespace ViewModels
                     SVG = propertyFacility.Facility.SVG,
                     Description = propertyFacility.Description,
                     PropertyFacilityId = propertyFacility.Id,
-                }).OrderBy(i => i.PropertyFacilityId).ToList(),
+                    Number = propertyFacility.Number
+                }).OrderBy(i => i.Number).ToList(),
             };
         }
         public static Expression<Func<Models.Property, PropertyDetailsViewModelForUser>> ToPropertyDetailsViewModelForUserExpression()
@@ -113,7 +114,7 @@ namespace ViewModels
                 DeliveryInstallment = i.DeliveryInstallment,
                 DownPayment = i.DownPayment,
                 Governorate = i.Governorate.NameEn,
-                Location = i.Location,
+                Location = i.Title,
                 MaintenaceInstallment = i.MaintenaceInstallment,
                 MaintenanceCost = i.MaintenanceCost,
                 MaintenanceCostNumerical = i.MaintenanceCost != null ? i.MaintenanceCost * i.PropertyUnitPrices.Where(i => i.To == null).Select(i => i.UnitPrice).FirstOrDefault() : null,
@@ -129,11 +130,12 @@ namespace ViewModels
                 IsDeleted = false,
                 Status = i.PropertyStatus.Where(i => i.To == null).Select(i => i.Status).FirstOrDefault(),
                 PropertyImages = i.PropertyImages.Select(image => image.ImageUrl).ToList(),
-                PropertyFacilities = i.PropertyFacilities.OrderBy(i => i.Id).Select(propertyFacility => new PropertyFacilityViewModelForUser()
+                PropertyFacilities = i.PropertyFacilities.Select(propertyFacility => new PropertyFacilityViewModelForUser()
                 {
                     SVG = propertyFacility.Facility.SVG,
                     Description = propertyFacility.Description,
-                }).ToList(),
+                    Number = propertyFacility.Number
+                }).OrderBy(i => i.Number).ToList(),
             };
         }
         public static PropertyImageViewModelforAdmin ToPropertyImageViewModelForAdmin(this PropertyImage propertyImage)

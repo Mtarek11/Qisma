@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ViewModels;
+using static iTextSharp.text.pdf.AcroFields;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace Reposatiory
@@ -18,6 +19,7 @@ namespace Reposatiory
         PropertyStatusManager _propertyStatusManager) : MainManager<Models.Property>(_mydB)
     {
         private readonly BuyTrackerManager buyTrackerManager = _buyTrackerManager;
+        private readonly LoftyContext mydB = _mydB;
         private readonly CityManager cityManager = _cityManager;
         private readonly UnitOfWork unitOfWork = _unitOfWork;
         private readonly PropertyUnitPriceManager propertyUnitPriceManager = _propertyUnitPriceManager;
@@ -25,67 +27,98 @@ namespace Reposatiory
         private readonly PropertyStatusManager propertyStatusManager = _propertyStatusManager;
         public async Task<APIResult<string>> AddNewPropertyAsync(AddNewPropertyViewModel viewModel)
         {
-            APIResult<string> aPIResult = new APIResult<string>();
+            APIResult<string> aPIResult = new();
             bool checkCity = await cityManager.CheckCityAsync(viewModel.CityId, viewModel.GovernorateId);
             if (!checkCity)
-            { 
+            {
                 aPIResult.Message = "City must be inside the governorate";
                 aPIResult.IsSucceed = false;
                 aPIResult.StatusCode = 400;
                 return aPIResult;
-            } 
+            }
             Models.Property property = viewModel.ToPropertyModel();
-            PropertyUnitPrice propertyUnitPrice = new() 
+            if (viewModel.Facilities.Count > 0)
             {
-                From = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")),
-                UnitPrice = viewModel.UnitPrice
-            };
-            PropertyRentalYield propertyRentalYield = new()
-            {
-                RentalYield = viewModel.AnnualRentalYield,
-                From = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")),
-            };
-            PropertyStatus propertyStatus = new()
-            {
-                Status = viewModel.Status,
-                From = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")),
-            };
-            property.PropertyUnitPrices.Add(propertyUnitPrice);
-            property.PropertyRentalYields.Add(propertyRentalYield);
-            property.PropertyStatus.Add(propertyStatus);
-            char randomChar1 = (char)('A' + new Random().Next(26));
-            char randomChar2 = (char)('A' + new Random().Next(26));
-            int randomNumber = new Random().Next(100000, 999999);
-            string guid = randomChar1 + randomChar2 + randomNumber.ToString();
-            property.Id = guid;
-            if (viewModel.Facilities != null)
-            {
+                HashSet<int> uniqueNumbers = new HashSet<int>();
                 foreach (AddPropertyFacilityViewModel facility in viewModel.Facilities)
                 {
+                    if (facility.FacilityId == null || facility.Number == null)
+                    {
+                        aPIResult.Message = "Number is requierd for all facilities";
+                        aPIResult.IsSucceed = false;
+                        aPIResult.StatusCode = 400;
+                        return aPIResult;
+                    }
+                    if (!uniqueNumbers.Add((int)facility.Number))
+                    {
+                        aPIResult.Message = "Every facility should have a unique number";
+                        aPIResult.IsSucceed = false;
+                        aPIResult.StatusCode = 400;
+                        return aPIResult;
+                    }
                     PropertyFacility propertyFacility = new()
                     {
-                        FacilityId = facility.FacilityId,
+                        FacilityId = (int)facility.FacilityId,
                         Description = facility.Description,
+                        Number = (int)facility.Number
                     };
                     property.PropertyFacilities.Add(propertyFacility);
                 }
             }
-            try
+            using (var transaction = await mydB.Database.BeginTransactionAsync())
             {
-                await AddAsync(property);
-                await unitOfWork.CommitAsync();
-                aPIResult.Data = property.Id;
-                aPIResult.Message = "Property added";
-                aPIResult.StatusCode = 200;
-                aPIResult.IsSucceed = true;
-                return aPIResult;
-            }
-            catch (DbUpdateException ex)
-            {
-                aPIResult.Message = ex.InnerException.Message;
-                aPIResult.StatusCode = 400;
-                aPIResult.IsSucceed = false;
-                return aPIResult;
+                PropertyUnitPrice propertyUnitPrice = new()
+                {
+                    From = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")),
+                    UnitPrice = viewModel.UnitPrice
+                };
+                PropertyRentalYield propertyRentalYield = new()
+                {
+                    RentalYield = viewModel.AnnualRentalYield,
+                    From = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")),
+                };
+                PropertyStatus propertyStatus = new()
+                {
+                    Status = viewModel.Status,
+                    From = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")),
+                };
+                property.PropertyUnitPrices.Add(propertyUnitPrice);
+                property.PropertyRentalYields.Add(propertyRentalYield);
+                property.PropertyStatus.Add(propertyStatus);
+                char randomChar1 = (char)('A' + new Random().Next(26));
+                char randomChar2 = (char)('A' + new Random().Next(26));
+                int randomNumber = new Random().Next(100000, 999999);
+                string guid = randomChar1 + randomChar2 + randomNumber.ToString();
+                property.Id = guid;
+                try
+                {
+                    await AddAsync(property);
+                    await unitOfWork.CommitAsync();
+                    await transaction.CommitAsync();
+                    aPIResult.Data = property.Id;
+                    aPIResult.Message = "Property added";
+                    aPIResult.StatusCode = 200;
+                    aPIResult.IsSucceed = true;
+                    return aPIResult;
+                }
+                catch (DbUpdateException ex)
+                {
+                    await transaction.RollbackAsync();
+                    if (ex.InnerException.Message.Contains("'FacilityId'"))
+                    {
+                        aPIResult.Message = "One of the facilities was not found in the db, please refresh page and try again";
+                        aPIResult.StatusCode = 400;
+                        aPIResult.IsSucceed = false;
+                        return aPIResult;
+                    }
+                    else
+                    {
+                        aPIResult.Message = ex.InnerException.Message;
+                        aPIResult.StatusCode = 400;
+                        aPIResult.IsSucceed = false;
+                        return aPIResult;
+                    }
+                }
             }
         }
         public async Task<APIResult<string>> UpdatePropertyAsync(UpdatePropertyViewModel viewModel)
@@ -95,187 +128,242 @@ namespace Reposatiory
             {
                 Id = i.Id,
                 UsedShares = i.UsedShares,
+                PropertyFacilities = i.PropertyFacilities
             }).FirstOrDefaultAsync();
             if (property != null)
             {
-                PartialUpdate(property);
-                bool isUpdated = false;
-                if (viewModel.AnnualRentalYield != null)
-                { 
-                    PropertyRentalYield propertyRentalYield = await propertyRentalYieldManager.GetAll().Where(i => i.PropertyId == viewModel.PropertyId && i.To == null)
-                       .Select(i => new PropertyRentalYield()
-                       {
-                           Id = i.Id,
-                           To = i.To,
-                           From = i.From
-                       }).FirstOrDefaultAsync();
-                    if (TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")).Year - propertyRentalYield.From.Year <= 1)
+                using (var transaction = await mydB.Database.BeginTransactionAsync())
+                {
+                    PartialUpdate(property);
+                    bool isUpdated = false;
+                    if (viewModel.Facilities.Count > 0)
                     {
-                        aPIResult.Message = "Property rental yield can be updated on time a year";
-                        aPIResult.StatusCode = 409;
-                        aPIResult.IsSucceed = false;
-                        return aPIResult;
+                        property.PropertyFacilities.Clear();
+                        HashSet<int> uniqueNumbers = new HashSet<int>();
+                        foreach (AddPropertyFacilityViewModel facility in viewModel.Facilities)
+                        {
+                            if (facility.FacilityId == null || facility.Number == null)
+                            {
+                                aPIResult.Message = "Number is requierd for all facilities";
+                                aPIResult.IsSucceed = false;
+                                aPIResult.StatusCode = 400;
+                                return aPIResult;
+                            }
+                            if (!uniqueNumbers.Add((int)facility.Number))
+                            {
+                                aPIResult.Message = "Every facility should have a unique number";
+                                aPIResult.IsSucceed = false;
+                                aPIResult.StatusCode = 400;
+                                return aPIResult;
+                            }
+                            PropertyFacility propertyFacility = new()
+                            {
+                                FacilityId = (int)facility.FacilityId,
+                                Description = facility.Description,
+                                Number = (int)facility.Number
+                            };
+                            property.PropertyFacilities.Add(propertyFacility);
+                        }
                     }
-                    else
+                    if (viewModel.AnnualRentalYield != null)
                     {
-                        propertyRentalYieldManager.PartialUpdate(propertyRentalYield);
-                        propertyRentalYield.To = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time"));
-                        PropertyRentalYield newPropertyRentalYield = new()
+                        PropertyRentalYield propertyRentalYield = await propertyRentalYieldManager.GetAll().Where(i => i.PropertyId == viewModel.PropertyId && i.To == null)
+                           .Select(i => new PropertyRentalYield()
+                           {
+                               Id = i.Id,
+                               To = i.To,
+                               From = i.From
+                           }).FirstOrDefaultAsync();
+                        if (TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")).Year - propertyRentalYield.From.Year <= 1)
+                        {
+                            aPIResult.Message = "Property rental yield can be updated on time a year";
+                            aPIResult.StatusCode = 409;
+                            aPIResult.IsSucceed = false;
+                            return aPIResult;
+                        }
+                        else
+                        {
+                            propertyRentalYieldManager.PartialUpdate(propertyRentalYield);
+                            propertyRentalYield.To = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time"));
+                            PropertyRentalYield newPropertyRentalYield = new()
+                            {
+                                PropertyId = viewModel.PropertyId,
+                                RentalYield = (double)viewModel.AnnualRentalYield,
+                                From = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")),
+                            };
+                            await propertyRentalYieldManager.AddAsync(newPropertyRentalYield);
+                            isUpdated = true;
+                        }
+                    }
+                    if (viewModel.CityId != null && viewModel.GovernorateId != null)
+                    {
+                        bool checkCity = await cityManager.CheckCityAsync((int)viewModel.CityId, (int)viewModel.GovernorateId);
+                        if (!checkCity)
+                        {
+                            aPIResult.Message = "City must be inside the governorate";
+                            aPIResult.IsSucceed = false;
+                            aPIResult.StatusCode = 400;
+                            return aPIResult;
+                        }
+                        else
+                        {
+                            property.CityId = (int)viewModel.CityId;
+                            property.GovernorateId = (int)viewModel.GovernorateId;
+                            isUpdated = true;
+                        }
+                    }
+                    if (viewModel.Location != null)
+                    {
+                        property.Title = viewModel.Location;
+                        isUpdated = true;
+                    }
+                    if (viewModel.UnitPrice != null)
+                    {
+                        PropertyUnitPrice propertyUnitPrice = await propertyUnitPriceManager.GetAll().Where(i => i.PropertyId == viewModel.PropertyId && i.To == null)
+                            .Select(i => new PropertyUnitPrice()
+                            {
+                                Id = i.Id,
+                                To = i.To,
+                            }).FirstOrDefaultAsync();
+                        propertyUnitPriceManager.PartialUpdate(propertyUnitPrice);
+                        propertyUnitPrice.To = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time"));
+                        PropertyUnitPrice newPropertyUnitPrice = new()
                         {
                             PropertyId = viewModel.PropertyId,
-                            RentalYield = (double)viewModel.AnnualRentalYield,
                             From = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")),
+                            UnitPrice = (double)viewModel.UnitPrice
                         };
-                        await propertyRentalYieldManager.AddAsync(newPropertyRentalYield);
+                        await propertyUnitPriceManager.AddAsync(newPropertyUnitPrice);
                         isUpdated = true;
                     }
-                }
-                if (viewModel.CityId != null && viewModel.GovernorateId != null)
-                {
-                    bool checkCity = await cityManager.CheckCityAsync((int)viewModel.CityId, (int)viewModel.GovernorateId);
-                    if (!checkCity)
+                    if (viewModel.Status != null)
                     {
-                        aPIResult.Message = "City must be inside the governorate";
-                        aPIResult.IsSucceed = false;
-                        aPIResult.StatusCode = 400;
-                        return aPIResult;
+                        PropertyStatus propertyStatus = await propertyStatusManager.GetAll().Where(i => i.PropertyId == viewModel.PropertyId && i.To == null).Select(i => new PropertyStatus()
+                        {
+                            Id = i.Id,
+                            To = i.To
+                        }).FirstOrDefaultAsync();
+                        propertyStatusManager.PartialUpdate(propertyStatus);
+                        propertyStatus.To = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time"));
+                        PropertyStatus newPropertyStatus = new()
+                        {
+                            PropertyId = viewModel.PropertyId,
+                            From = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")),
+                            Status = (Status)viewModel.Status
+                        };
+                        await propertyStatusManager.AddAsync(newPropertyStatus);
+                        isUpdated = true;
+                    }
+                    if (viewModel.Description != null)
+                    {
+                        property.Description = viewModel.Description;
+                        isUpdated = true;
+                    }
+                    if (viewModel.MaintenanceCost != null)
+                    {
+                        property.MaintenanceCost = viewModel.MaintenanceCost;
+                        isUpdated = true;
+                    }
+                    if (viewModel.TransactionFees != null)
+                    {
+                        property.TransactionFees = viewModel.TransactionFees;
+                        isUpdated = true;
+                    }
+                    if (viewModel.NumberOfShares != null)
+                    {
+                        if (viewModel.NumberOfShares < property.UsedShares)
+                        {
+                            aPIResult.Message = "Total number of shares cannot be less than pending shares, Cancell pending shares first";
+                            aPIResult.StatusCode = 409;
+                            aPIResult.IsSucceed = false;
+                            return aPIResult;
+                        }
+                        property.NumberOfShares = (int)viewModel.NumberOfShares;
+                        isUpdated = true;
+                    }
+                    if (viewModel.MinNumberOfShares != null)
+                    {
+                        property.MinOfShares = (int)viewModel.MinNumberOfShares;
+                        isUpdated = true;
+                    }
+                    if (viewModel.SharePrice != null)
+                    {
+                        property.SharePrice = (int)viewModel.SharePrice;
+                        isUpdated = true;
+                    }
+                    if (viewModel.AnnualPriceAppreciation != null)
+                    {
+                        property.AnnualPriceAppreciation = (double)viewModel.AnnualPriceAppreciation;
+                        isUpdated = true;
+                    }
+                    if (viewModel.DownPayment != null)
+                    {
+                        property.DownPayment = (double)viewModel.DownPayment;
+                        isUpdated = true;
+                    }
+                    if (viewModel.MonthlyInstallment != null)
+                    {
+                        property.MonthlyInstallment = viewModel.MonthlyInstallment;
+                        isUpdated = true;
+                    }
+                    if (viewModel.DeliveryInstallment != null)
+                    {
+                        property.DeliveryInstallment = viewModel.DeliveryInstallment;
+                        isUpdated = true;
+                    }
+                    if (viewModel.Type != null)
+                    {
+                        property.Type = (Models.Type)viewModel.Type;
+                        isUpdated = true;
+                    }
+                    if (viewModel.NumberOfYears != null)
+                    {
+                        property.NumberOfYears = viewModel.NumberOfYears;
+                        isUpdated = true;
+                    }
+                    if (viewModel.MaintenaceInstallment != null)
+                    {
+                        property.MaintenaceInstallment = viewModel.MaintenaceInstallment;
+                        isUpdated = true;
+                    }
+                    if (isUpdated)
+                    {
+                        property.LastModificationDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time"));
+                        try
+                        {
+                            await unitOfWork.CommitAsync();
+                            await transaction.CommitAsync();
+                            aPIResult.Message = "Property updated";
+                            aPIResult.StatusCode = 200;
+                            aPIResult.IsSucceed = true;
+                            return aPIResult;
+                        }
+                        catch (DbUpdateException ex)
+                        {
+                            await transaction.RollbackAsync();
+                            if (ex.InnerException.Message.Contains("'FacilityId'"))
+                            {
+                                aPIResult.Message = "One of the facilities was not found in the db, please refresh page and try again";
+                                aPIResult.StatusCode = 400;
+                                aPIResult.IsSucceed = false;
+                                return aPIResult;
+                            }
+                            else
+                            {
+                                aPIResult.Message = ex.InnerException.Message;
+                                aPIResult.StatusCode = 400;
+                                aPIResult.IsSucceed = false;
+                                return aPIResult;
+                            }
+                        }
                     }
                     else
                     {
-                        property.CityId = (int)viewModel.CityId;
-                        property.GovernorateId = (int)viewModel.GovernorateId;
-                        isUpdated = true;
-                    }
-                }
-                if (viewModel.Location != null)
-                {
-                    property.Location = viewModel.Location;
-                    isUpdated = true;
-                }
-                if (viewModel.UnitPrice != null)
-                {
-                    PropertyUnitPrice propertyUnitPrice = await propertyUnitPriceManager.GetAll().Where(i => i.PropertyId == viewModel.PropertyId && i.To == null)
-                        .Select(i => new PropertyUnitPrice()
-                        {
-                            Id = i.Id, 
-                            To = i.To,
-                        }).FirstOrDefaultAsync();
-                    propertyUnitPriceManager.PartialUpdate(propertyUnitPrice);
-                    propertyUnitPrice.To = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time"));
-                    PropertyUnitPrice newPropertyUnitPrice = new()
-                    {
-                        PropertyId = viewModel.PropertyId,
-                        From = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")),
-                        UnitPrice = (double)viewModel.UnitPrice
-                    };
-                    await propertyUnitPriceManager.AddAsync(newPropertyUnitPrice);
-                    isUpdated = true;
-                }
-                if (viewModel.Status != null)
-                {
-                    PropertyStatus propertyStatus = await propertyStatusManager.GetAll().Where(i => i.PropertyId == viewModel.PropertyId && i.To == null).Select(i => new PropertyStatus()
-                    {
-                        Id = i.Id,
-                        To = i.To
-                    }).FirstOrDefaultAsync();
-                    propertyStatusManager.PartialUpdate(propertyStatus);
-                    propertyStatus.To = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time"));
-                    PropertyStatus newPropertyStatus = new()
-                    {
-                        PropertyId = viewModel.PropertyId,
-                        From = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")),
-                        Status = (Status)viewModel.Status
-                    };
-                    await propertyStatusManager.AddAsync(newPropertyStatus);
-                    isUpdated = true;
-                }
-                if (viewModel.Description != null)
-                {
-                    property.Description = viewModel.Description;
-                    isUpdated = true;
-                }
-                if (viewModel.MaintenanceCost != null)
-                {
-                    property.MaintenanceCost = viewModel.MaintenanceCost;
-                    isUpdated = true;
-                }
-                if (viewModel.TransactionFees != null)
-                {
-                    property.TransactionFees = viewModel.TransactionFees;
-                    isUpdated = true;
-                }
-                if (viewModel.NumberOfShares != null)
-                {
-                    if (viewModel.NumberOfShares < property.UsedShares)
-                    {
-                        aPIResult.Message = "Total number of shares cannot be less than pending shares, Cancell pending shares first";
-                        aPIResult.StatusCode = 409;
+                        aPIResult.Message = "Nothing to update";
+                        aPIResult.StatusCode = 400;
                         aPIResult.IsSucceed = false;
                         return aPIResult;
                     }
-                    property.NumberOfShares = (int)viewModel.NumberOfShares;
-                    isUpdated = true;
-                }
-                if (viewModel.MinNumberOfShares != null)
-                {
-                    property.MinOfShares = (int)viewModel.MinNumberOfShares;
-                    isUpdated = true;
-                }
-                if (viewModel.SharePrice != null)
-                {
-                    property.SharePrice = (int)viewModel.SharePrice;
-                    isUpdated = true;
-                }
-                if (viewModel.AnnualPriceAppreciation != null)
-                {
-                    property.AnnualPriceAppreciation = (double)viewModel.AnnualPriceAppreciation;
-                    isUpdated = true;
-                }
-                if (viewModel.DownPayment != null)
-                {
-                    property.DownPayment = (double)viewModel.DownPayment;
-                    isUpdated = true;
-                }
-                if (viewModel.MonthlyInstallment != null)
-                {
-                    property.MonthlyInstallment = viewModel.MonthlyInstallment;
-                    isUpdated = true;
-                }
-                if (viewModel.DeliveryInstallment != null)
-                {
-                    property.DeliveryInstallment = viewModel.DeliveryInstallment;
-                    isUpdated = true;
-                }
-                if (viewModel.Type != null)
-                {
-                    property.Type = (Models.Type)viewModel.Type;
-                    isUpdated = true;
-                }
-                if (viewModel.NumberOfYears != null)
-                {
-                    property.NumberOfYears = viewModel.NumberOfYears;
-                    isUpdated = true;
-                }
-                if (viewModel.MaintenaceInstallment != null)
-                {
-                    property.MaintenaceInstallment = viewModel.MaintenaceInstallment;
-                    isUpdated = true;
-                }
-                if (isUpdated)
-                {
-                    property.LastModificationDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time"));
-                    await unitOfWork.CommitAsync();
-                    aPIResult.Message = "Property updated";
-                    aPIResult.StatusCode = 200;
-                    aPIResult.IsSucceed = true;
-                    return aPIResult;
-                }
-                else
-                {
-                    aPIResult.Message = "Nothing to update";
-                    aPIResult.StatusCode = 400;
-                    aPIResult.IsSucceed = false;
-                    return aPIResult;
                 }
             }
             else
@@ -291,8 +379,8 @@ namespace Reposatiory
         {
             int itemsToSkip = pageNumber * pageSize;
             int totalPageNumbers = 0;
-            int totalItemsNumber = 0; 
-            IQueryable<Models.Property> query; 
+            int totalItemsNumber = 0;
+            IQueryable<Models.Property> query;
             if (isAdmin)
             {
                 query = GetAll();
@@ -323,9 +411,9 @@ namespace Reposatiory
             }
             List<PropertyViewModelInListView> properties = await query.OrderBy(i => i.Id).Select(PropertyExtansions.ToPropertyViewModelInListExpression(isAdmin)).Skip(itemsToSkip).Take(pageSize).ToListAsync();
             if (properties.Count > 0)
-            {  
+            {
                 int totalItems = await query.CountAsync();
-                totalItemsNumber = totalItems; 
+                totalItemsNumber = totalItems;
                 totalPageNumbers = (int)Math.Ceiling((double)totalItems / pageSize);
             }
             PaginationViewModel<PropertyViewModelInListView> paginationViewModel = new()
@@ -393,7 +481,7 @@ namespace Reposatiory
         {
             PropertyDetailsViewModelForAdmin property = await GetAll().Where(i => i.Id == propertyId).Select(PropertyExtansions.ToPropertyDetailsViewModelForAdminExpression()).FirstOrDefaultAsync();
             return property;
-        } 
+        }
         public async Task<APIResult<string>> EnableAndDisablePropertyAsync(string propertyId)
         {
             APIResult<string> aPIResult = new();
@@ -440,8 +528,8 @@ namespace Reposatiory
             APIResult<OrderingPageViewModel> aPIResult = new();
             BuyTracker buyTracker = await buyTrackerManager.GetAll().Where(i => i.UserId == userId && i.PropertyId == propertyId).Select(i => new BuyTracker()
             {
-                PropertyId = i.PropertyId, 
-                UserId = i.UserId, 
+                PropertyId = i.PropertyId,
+                UserId = i.UserId,
                 LastProceedDate = i.LastProceedDate,
             }).FirstOrDefaultAsync();
             if (buyTracker == null)
@@ -532,7 +620,7 @@ namespace Reposatiory
             Models.Property property = await GetAll().Where(i => i.Id == propertyId && i.IsDeleted == false).Select(i => new Models.Property()
             {
                 Id = i.Id,
-                Location = i.Location,
+                Title = i.Title,
                 Governorate = new Governorate()
                 {
                     NameEn = i.Governorate.NameEn
@@ -571,7 +659,7 @@ namespace Reposatiory
                 aPIResult.IsSucceed = false;
                 return aPIResult;
             }
-            if (numberOfshares < property.MinOfShares )
+            if (numberOfshares < property.MinOfShares)
             {
                 aPIResult.Message = "Cannot insert less than min number of shares";
                 aPIResult.StatusCode = 400;
@@ -605,7 +693,7 @@ namespace Reposatiory
                 OrderingPage = orderingPage,
                 UserInformation = userInformation,
                 PropertyLocation = property.Governorate.NameEn + ", " + property.City.NameEn,
-                PropertyName = property.Location
+                PropertyName = property.Title
             };
             aPIResult.Data = orderPreviewPage;
             aPIResult.Message = "Order preview page";

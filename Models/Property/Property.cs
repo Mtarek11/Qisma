@@ -14,7 +14,7 @@ namespace Models
         public int GovernorateId { get; set; }
         public virtual City City { get; set; }
         public int CityId { get; set; }
-        public string Location { get; set; }
+        public string Title { get; set; }
         public string Description {  get; set; }
         // Numerical and Percentage
         public double? MaintenanceCost { get; set; }

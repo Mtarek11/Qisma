@@ -95,7 +95,7 @@ namespace Lofty.Controllers
         [HttpPut("api/Dashboard/AboutQisma/UpdateAboutUs")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
-        public async Task<IActionResult> UpdateAboutUsAsync([FromBody] AboutUsViewModel viewModel)
+        public async Task<IActionResult> UpdateAboutUsAsync([FromForm] UpdateAboutUsViewModel viewModel)
         {
             bool checkUpdatedOrNot = await aboutQismaManager.UpdateAboutUsAsync(viewModel);
             if (checkUpdatedOrNot)
@@ -153,13 +153,13 @@ namespace Lofty.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("api/AboutQisma/GetAllManagers")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<List<TeamMember>>))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<TeamViewModel>))]
         public async Task<IActionResult> GetAllManagersAsync()
         {
-            List<TeamMember> teamMembers = await teamMeamberManager.GetAllManagersAsync();
-            if (teamMembers.Count > 0)
+            TeamViewModel teamMembers = await teamMeamberManager.GetAllManagersAsync();
+            if (teamMembers.TeamMembers.Count > 0)
             {
-                return Ok(new APIResult<List<TeamMember>>()
+                return Ok(new APIResult<TeamViewModel>()
                 {
                     Data = teamMembers,
                     IsSucceed = true,
@@ -169,8 +169,9 @@ namespace Lofty.Controllers
             }
             else
             {
-                return Ok(new APIResult<List<TeamMember>>()
+                return Ok(new APIResult<TeamViewModel>()
                 {
+                    Data = teamMembers,
                     IsSucceed = false,
                     Message = "No managers found",
                     StatusCode = 200
@@ -182,13 +183,13 @@ namespace Lofty.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("api/AboutQisma/GetAllMembers")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<List<TeamMember>>))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<TeamViewModel>))]
         public async Task<IActionResult> GetAllMembersAsync()
         {
-            List<TeamMember> teamMembers = await teamMeamberManager.GetAllMembersAsync();
-            if (teamMembers.Count > 0)
+            TeamViewModel teamMembers = await teamMeamberManager.GetAllMembersAsync();
+            if (teamMembers.TeamMembers.Count > 0)
             {
-                return Ok(new APIResult<List<TeamMember>>()
+                return Ok(new APIResult<TeamViewModel>()
                 {
                     Data = teamMembers,
                     IsSucceed = true,
@@ -198,8 +199,9 @@ namespace Lofty.Controllers
             }
             else
             {
-                return Ok(new APIResult<List<TeamMember>>()
+                return Ok(new APIResult<TeamViewModel>()
                 {
+                    Data = teamMembers,
                     IsSucceed = false,
                     Message = "No team members found",
                     StatusCode = 200
@@ -225,6 +227,68 @@ namespace Lofty.Controllers
                 {
                     StatusCode = result.StatusCode
                 };
+            }
+            else
+            {
+                return BadRequest(new APIResult<string>()
+                {
+                    Message = string.Join("; ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage)),
+                    IsSucceed = false,
+                    StatusCode = 400
+                });
+            }
+        }
+        /// <summary>
+        /// Update manager title
+        /// </summary>
+        /// <param name="Title"></param>
+        /// <returns></returns>
+        [Authorize(Roles = "Admin")]
+        [HttpPut("api/Dashboard/AboutQisma/UpdateManagersTitle")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
+        public async Task<IActionResult> UpdateManagerstitleAsyncAsync([FromBody, Required] string Title)
+        {
+            if (ModelState.IsValid)
+            {
+                await aboutQismaManager.UpdateManagerTitleAsync(Title);
+                return Ok(new APIResult<string>()
+                {
+                    StatusCode = 200,
+                    IsSucceed = true,
+                    Message = "Title updated"
+                });
+            }
+            else
+            {
+                return BadRequest(new APIResult<string>()
+                {
+                    Message = string.Join("; ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage)),
+                    IsSucceed = false,
+                    StatusCode = 400
+                });
+            }
+        }
+        /// <summary>
+        /// Update team member title
+        /// </summary>
+        /// <param name="Title"></param>
+        /// <returns></returns>
+        [Authorize(Roles = "Admin")]
+        [HttpPut("api/Dashboard/AboutQisma/UpdateTeamMembersTitle")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
+        public async Task<IActionResult> UpdateTeamMemberstitleAsyncAsync([FromBody, Required] string Title)
+        {
+            if (ModelState.IsValid)
+            {
+                await aboutQismaManager.UpdateTeamMemberTitleAsync(Title);
+                return Ok(new APIResult<string>()
+                {
+                    StatusCode = 200,
+                    IsSucceed = true,
+                    Message = "Title updated"
+                });
             }
             else
             {

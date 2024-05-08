@@ -19,6 +19,7 @@ namespace Models
             builder.Property(i => i.Title).IsRequired(true);
             builder.Property(i => i.Description).IsRequired(true);
             builder.Property(i => i.Link).IsRequired(false);
+            builder.Property(i => i.ImageLink).IsRequired(false);
         }
     }
 }

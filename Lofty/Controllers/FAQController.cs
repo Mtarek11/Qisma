@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Models;
 using Reposatiory;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations; 
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using ViewModels;
@@ -17,7 +17,7 @@ namespace Lofty.Controllers
     /// <param name="_fAQManager"></param>
     public class FAQController(FAQManager _fAQManager) : ControllerBase
     {
-       private readonly FAQManager fAQManager = _fAQManager;
+        private readonly FAQManager fAQManager = _fAQManager;
         /// <summary>
         /// Add faq
         /// </summary>
@@ -29,15 +29,27 @@ namespace Lofty.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
         public async Task<IActionResult> AddFAQAsync([FromBody] AddFAQViewModel viewModel)
         {
-            if (ModelState.IsValid) 
+            if (ModelState.IsValid)
             {
-                await fAQManager.AddFAQAsync(viewModel.Question, viewModel.Answer);
-                return Ok(new APIResult<string>()
+                bool checkAddedOrNot = await fAQManager.AddFAQAsync(viewModel.Question, viewModel.Answer, viewModel.Number);
+                if (checkAddedOrNot)
                 {
-                    IsSucceed = true,
-                    Message = "FAQ added",
-                    StatusCode = 200
-                });
+                    return Ok(new APIResult<string>()
+                    {
+                        IsSucceed = true,
+                        Message = "FAQ added",
+                        StatusCode = 200
+                    });
+                }
+                else
+                {
+                    return BadRequest(new APIResult<string>()
+                    {
+                        IsSucceed = false,
+                        Message = "Every FAQ should have unique number",
+                        StatusCode = 400
+                    });
+                }
             }
             else
             {
@@ -120,6 +132,63 @@ namespace Lofty.Controllers
                     IsSucceed = false,
                     Message = "No FAQs found",
                     StatusCode = 200
+                });
+            }
+        }
+        /// <summary>
+        /// Update faq index
+        /// </summary>
+        /// <param name="viewModel"></param>
+        /// <returns></returns>
+        [HttpPut("api/FAQ/UpdateIndex")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<string>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
+        public async Task<IActionResult> UpdateFAQsIndexAsync([FromBody, Required] List<UpdateFAQIndexViewModel> viewModel)
+        {
+            if (ModelState.IsValid)
+            {
+                APIResult<string> result = await fAQManager.UpdateFAQsIndexAsync(viewModel);
+                return new JsonResult(result)
+                {
+                    StatusCode = result.StatusCode
+                };
+            }
+            else
+            {
+                return BadRequest(new APIResult<string>()
+                {
+                    Message = string.Join("; ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage)),
+                    IsSucceed = false,
+                    StatusCode = 400
+                });
+            }
+        }
+        /// <summary>
+        /// Update faq
+        /// </summary>
+        /// <param name="viewModel"></param>
+        /// <returns></returns>
+        [HttpPut("api/FAQ/Update")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
+        public async Task<IActionResult> UpdateFAQAsync([FromBody] UpdateFAQViewModel viewModel)
+        {
+            if (ModelState.IsValid)
+            {
+                APIResult<string> result = await fAQManager.UpdateFAQAsync(viewModel);
+                return new JsonResult(result)
+                {
+                    StatusCode = result.StatusCode
+                };
+            }
+            else
+            {
+                return BadRequest(new APIResult<string>()
+                {
+                    Message = string.Join("; ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage)),
+                    IsSucceed = false,
+                    StatusCode = 400
                 });
             }
         }

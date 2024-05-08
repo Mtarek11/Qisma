@@ -53,7 +53,7 @@ namespace Reposatiory
                 TransactionFees = i.TransactionFees,
                 PropertyUnitPrices = i.PropertyUnitPrices.Where(i => i.To == null).ToList(),
                 UsedShares = i.UsedShares,
-                Location = i.Location,
+                Title = i.Title,
                 NumberOfShares = i.NumberOfShares
             }).FirstOrDefaultAsync();
             if (property == null)
@@ -140,7 +140,7 @@ namespace Reposatiory
                                     pdfContentByte.SetFontAndSize(BaseFont.CreateFont(), 12);
                                     pdfContentByte.BeginText();
                                     pdfContentByte.SetColorFill(BaseColor.BLACK);
-                                    pdfContentByte.ShowTextAligned(PdfContentByte.ALIGN_LEFT, property.Location + "," + property.Id, 160, pageSize.Height - 247, 0);
+                                    pdfContentByte.ShowTextAligned(PdfContentByte.ALIGN_LEFT, property.Title + "," + property.Id, 160, pageSize.Height - 247, 0);
                                     pdfContentByte.ShowTextAligned(PdfContentByte.ALIGN_LEFT, numberOfShares.ToString(), 231, pageSize.Height - 271, 0);
                                     pdfContentByte.ShowTextAligned(PdfContentByte.ALIGN_LEFT, (numberOfShares * order.SharePrice).ToString(), 166, pageSize.Height - 295, 0);
                                     pdfContentByte.ShowTextAligned(PdfContentByte.ALIGN_LEFT, order.OrderNumber, 156, pageSize.Height - 319, 0);
@@ -173,7 +173,7 @@ namespace Reposatiory
                     client.EnableSsl = true;
                     MailAddress from = new MailAddress("mohamedtarek70m@gmail.com");
                     MailAddress to = new MailAddress(user.Email);
-                    string subject = $"Your Order Confirmation - {property.Location} Fractional Ownership";
+                    string subject = $"Your Order Confirmation - {property.Title} Fractional Ownership";
                     string body =
                         $@"<html>
                             <head>
@@ -185,10 +185,10 @@ namespace Reposatiory
                             </head>
                             <body>
                             Hello {user.FirstName} {user.LastName},<br>
-                            Thank you for choosing Qisma for your investment in {property.Location}. We’re pleased to confirm that your purchase of fractional shares has been processed successfully.<br>
+                            Thank you for choosing Qisma for your investment in {property.Title}. We’re pleased to confirm that your purchase of fractional shares has been processed successfully.<br>
                             Someone from our customer service department will contact you shortly to walk you through the next steps. <br><br>
                             <span class='bold'>Here are the details of your investment:</span><br>
-                            Property Name: {property.Location}<br>
+                            Property Name: {property.Title}<br>
                             Fractional Shares Purchased: {order.NumberOfShares}<br>
                             Total Investment: {(order.NumberOfShares * order.SharePrice).ToString("F2")}<br>
                             First Payment: {order.DownPayment?.ToString("F2")}<br>
@@ -242,7 +242,7 @@ namespace Reposatiory
                 }
                 await unitOfWork.CommitAsync();
             }
-        }
+        } 
         public async Task<PaginationViewModel<OrderViewModelForAdmin>> GetAllOrdersForAdminAsync(int pageNumber, int pageSize, OrderStatus? orderStatus)
         {
             int itemsToSkip = pageNumber * pageSize;
@@ -400,7 +400,7 @@ namespace Reposatiory
                     AnnualPriceAppreciation = i.Property.AnnualPriceAppreciation,
                     PropertyUnitPrices = i.Property.PropertyUnitPrices,
                     PropertyStatus = i.Property.PropertyStatus,
-                    Location = i.Property.Location,
+                    Title = i.Property.Title,
                 },
             }).ToListAsync();
             if (userOrders.Count > 0)
@@ -438,6 +438,7 @@ namespace Reposatiory
                         }
 
                     }
+                    userPortfolio.ProtfolioValue += order.NumberOfShares * order.Property.SharePrice;
                     userPortfolio.GrossMonthlyIncome += totalRentalIncome;
                     userPortfolio.UserStakes.Add(new UserPropertiesInPortfolioViewModel
                     {
@@ -450,7 +451,7 @@ namespace Reposatiory
                         },
                         InvestmentValue = order.NumberOfShares * order.Property.SharePrice,
                         PropertyId = order.PropertyId,
-                        PropertyLocation = order.Property.Location,
+                        PropertyLocation = order.Property.Title,
                         TotalRentalIncome = totalRentalIncome
                     });
                 }

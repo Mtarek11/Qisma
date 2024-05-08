@@ -12,6 +12,7 @@ namespace ViewModels
     {
         [Required]
         public IFormFile Image { get; set; }
+        public string ImageLink {  get; set; }
         [Required]
         public string Title { get; set; }
         [Required]

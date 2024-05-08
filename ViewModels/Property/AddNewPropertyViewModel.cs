@@ -11,6 +11,7 @@ namespace ViewModels
 {
     public class AddNewPropertyViewModel
     {
+        // Location here means title, but we will leave it due to frontend developer requierments
         [Required]
         public string Location { get; set; }
         [Required]

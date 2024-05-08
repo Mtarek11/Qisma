@@ -10,6 +10,7 @@ namespace ViewModels
     {
         public string SVG {  get; set; }
         public string Description {  get; set; } 
+        public int Number {  get; set; }
     }
 }
  
