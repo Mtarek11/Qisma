@@ -18,7 +18,6 @@ namespace Models
             builder.Property(i => i.Question).IsRequired(true);
             builder.Property(i => i.Answer).IsRequired(true);
             builder.Property(i => i.Number).IsRequired(true);
-            builder.HasIndex(i => i.Number).IsUnique();
         }
     }
 }

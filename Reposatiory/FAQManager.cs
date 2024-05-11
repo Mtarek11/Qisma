@@ -13,13 +13,14 @@ namespace Reposatiory
     {
         private readonly LoftyContext mydB = _mydB;
         private readonly UnitOfWork unitOfWork = _unitOfWork;
-        public async Task<bool> AddFAQAsync(string question, string answer, int Number)
+        public async Task<bool> AddFAQAsync(string question, string answer)
         {
+            int number = await GetAll().CountAsync();
             FAQ FAQ = new()
             {
                 Question = question,
                 Answer = answer,
-                Number = Number
+                Number = number + 1
             };
             try
             {
@@ -35,17 +36,23 @@ namespace Reposatiory
         }
         public async Task<bool> DeleteFAQAsync(int id)
         {
-            FAQ FAQ = new()
+            FAQ deletedFAQ = await GetAll().Where(i => i.Id == id).FirstOrDefaultAsync();
+            if (deletedFAQ != null)
             {
-                Id = id
-            };
-            try
-            {
-                Remove(FAQ);
+                List<FAQ> modifiedFAQs = await GetAll().Where(i => i.Number > deletedFAQ.Number).ToListAsync();
+                if (modifiedFAQs.Count > 0)
+                {
+                    foreach (FAQ modifiedFAQ in modifiedFAQs)
+                    {
+                        modifiedFAQ.Number--;
+                        Update(modifiedFAQ);
+                    }
+                }
+                Remove(deletedFAQ);
                 await unitOfWork.CommitAsync();
                 return true;
             }
-            catch (DbUpdateException)
+            else
             {
                 return false;
             }
@@ -55,12 +62,12 @@ namespace Reposatiory
             List<FAQ> FAQs = await GetAll().AsNoTracking().OrderBy(i => i.Number).ToListAsync();
             return FAQs;
         }
-        public async Task<APIResult<string>> UpdateFAQsIndexAsync(List<UpdateFAQIndexViewModel> fAqs)
+        public async Task<APIResult<string>> UpdateFAQsIndexAsync(List<int> fAqs)
         {
             APIResult<string> aPIResult = new();
             if (fAqs.Count > 0)
             {
-                List<FAQ> oldFaqs = await GetAll().Where(i => fAqs.Select(o => o.Id).Contains(i.Id)).ToListAsync();
+                List<FAQ> oldFaqs = await GetAll().Where(i => fAqs.Contains(i.Id)).ToListAsync();
                 if (oldFaqs.Count != fAqs.Count)
                 {
                     aPIResult.Message = "FAQs not found";
@@ -68,38 +75,19 @@ namespace Reposatiory
                     aPIResult.IsSucceed = false;
                     return aPIResult;
                 }
-                using (var transaction = await mydB.Database.BeginTransactionAsync())
+                int number = 0;
+                foreach (int newFaq in fAqs)
                 {
-                    foreach (FAQ oldFaq in oldFaqs)
-                    {
-                        Remove(oldFaq);
-                    }
-                    foreach (UpdateFAQIndexViewModel newFaq in fAqs)
-                    {
-                        FAQ fAQ = new();
-                        fAQ.Question = oldFaqs.Where(i => i.Id == newFaq.Id).Select(i => i.Question).FirstOrDefault();
-                        fAQ.Answer = oldFaqs.Where(i => i.Id == newFaq.Id).Select(i => i.Answer).FirstOrDefault();
-                        fAQ.Number = newFaq.Number;
-                        await AddAsync(fAQ);
-                    }
-                    try
-                    {
-                        await unitOfWork.CommitAsync();
-                        await transaction.CommitAsync();
-                        aPIResult.Message = "FAQ updated";
-                        aPIResult.StatusCode = 200;
-                        aPIResult.IsSucceed = true;
-                        return aPIResult;
-                    }
-                    catch (DbUpdateException)
-                    {
-                        await transaction.RollbackAsync();
-                        aPIResult.Message = "Each FAQ should have unique numbern";
-                        aPIResult.StatusCode = 400;
-                        aPIResult.IsSucceed = false;
-                        return aPIResult;
-                    }
+                    FAQ oldFAQ = oldFaqs.Where(i => i.Id == newFaq).FirstOrDefault();
+                    number++;
+                    oldFAQ.Number = number;
+                    Update(oldFAQ);
                 }
+                await unitOfWork.CommitAsync();
+                aPIResult.Message = "FAQ updated";
+                aPIResult.StatusCode = 200;
+                aPIResult.IsSucceed = true;
+                return aPIResult;
             }
             else
             {
@@ -118,7 +106,7 @@ namespace Reposatiory
                 Id = viewModel.Id
             };
             PartialUpdate(fAQ);
-            if(viewModel.Question != null)
+            if (viewModel.Question != null)
             {
                 fAQ.Question = viewModel.Question;
                 isUpdated = true;

@@ -31,7 +31,7 @@ namespace Lofty.Controllers
         {
             if (ModelState.IsValid)
             {
-                bool checkAddedOrNot = await fAQManager.AddFAQAsync(viewModel.Question, viewModel.Answer, viewModel.Number);
+                bool checkAddedOrNot = await fAQManager.AddFAQAsync(viewModel.Question, viewModel.Answer);
                 if (checkAddedOrNot)
                 {
                     return Ok(new APIResult<string>()
@@ -138,17 +138,17 @@ namespace Lofty.Controllers
         /// <summary>
         /// Update faq index
         /// </summary>
-        /// <param name="viewModel"></param>
+        /// <param name="FAQsIds"></param>
         /// <returns></returns>
         [HttpPut("api/FAQ/UpdateIndex")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<string>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
-        public async Task<IActionResult> UpdateFAQsIndexAsync([FromBody, Required] List<UpdateFAQIndexViewModel> viewModel)
+        public async Task<IActionResult> UpdateFAQsIndexAsync([FromBody, Required] List<int> FAQsIds)
         {
             if (ModelState.IsValid)
             {
-                APIResult<string> result = await fAQManager.UpdateFAQsIndexAsync(viewModel);
+                APIResult<string> result = await fAQManager.UpdateFAQsIndexAsync(FAQsIds);
                 return new JsonResult(result)
                 {
                     StatusCode = result.StatusCode
@@ -168,7 +168,7 @@ namespace Lofty.Controllers
         /// Update faq
         /// </summary>
         /// <param name="viewModel"></param>
-        /// <returns></returns>
+        /// <returns></returns> 
         [HttpPut("api/FAQ/Update")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]

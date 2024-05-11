@@ -68,7 +68,7 @@ namespace Reposatiory
             viewModel.FirstSectionTitle = aboutQisma.Where(i => i.Id == 10).Select(i => i.Content).FirstOrDefault();
             viewModel.FirstSectionDescription = aboutQisma.Where(i => i.Id == 11).Select(i => i.Content).FirstOrDefault();
             viewModel.SecondSectionTitle = aboutQisma.Where(i => i.Id == 12).Select(i => i.Content).FirstOrDefault();
-            viewModel.FirstSectionDescription = aboutQisma.Where(i => i.Id == 13).Select(i => i.Content).FirstOrDefault();
+            viewModel.SecondSectionDescription = aboutQisma.Where(i => i.Id == 13).Select(i => i.Content).FirstOrDefault();
             viewModel.ThirdSectionTitle = aboutQisma.Where(i => i.Id == 14).Select(i => i.Content).FirstOrDefault();
             viewModel.ThirdSectionDescription = aboutQisma.Where(i => i.Id == 15).Select(i => i.Content).FirstOrDefault();
             viewModel.FourthSectionTitle = aboutQisma.Where(i => i.Id == 16).Select(i => i.Content).FirstOrDefault();

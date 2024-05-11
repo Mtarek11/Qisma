@@ -48,11 +48,6 @@ namespace Reposatiory
             teamViewModel.Title = title;
             return teamViewModel;
         }
-        public async Task<List<TeamMember>> GetAllTeamForAboutUsAsync()
-        {
-            List<TeamMember> teamMembers = await GetAll().AsNoTracking().ToListAsync();
-            return teamMembers;
-        }
         public async Task<TeamViewModel> GetAllMembersAsync()
         {
             TeamViewModel teamViewModel = new();

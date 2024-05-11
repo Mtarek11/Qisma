@@ -25,34 +25,34 @@ namespace Lofty.Controllers
         private readonly PropertyImageManager propertyImageManager = _propertyImageManager;
         private readonly FacilityManager facilityManager = _facilityManager;
         private readonly PropertyManager propertyManager = _propertyManager;
-        /// <summary>
-        /// Add new property ==> Type 1- resedintial 2- commercial ==> Status 1- Under construction 2- Ready to move and rent
-        /// </summary>
-        /// <param name="viewModel"></param>
-        /// <returns></returns>
-        [HttpPost("api/Dashboard/Property/Add")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
-        public async Task<IActionResult> AddNewPropertyAsync([FromBody] AddNewPropertyViewModel viewModel)
-        {
-            if (ModelState.IsValid)
-            {
-                APIResult<string> result = await propertyManager.AddNewPropertyAsync(viewModel);
-                return new JsonResult(result)
-                {  
-                    StatusCode = result.StatusCode
-                };
-            }
-            else
-            { 
-                return BadRequest(new APIResult<string>()
-                {
-                    Message = string.Join("; ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage)),
-                    IsSucceed = false,
-                    StatusCode = 400
-                });
-            }
-        }
+        ///// <summary>
+        ///// Add new property ==> Type 1- resedintial 2- commercial ==> Status 1- Under construction 2- Ready to move and rent
+        ///// </summary>
+        ///// <param name="viewModel"></param>
+        ///// <returns></returns>
+        //[HttpPost("api/Dashboard/Property/Add")]
+        //[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
+        //public async Task<IActionResult> AddNewPropertyAsync([FromBody] AddNewPropertyViewModel viewModel)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        APIResult<string> result = await propertyManager.AddNewPropertyAsync(viewModel);
+        //        return new JsonResult(result)
+        //        {  
+        //            StatusCode = result.StatusCode
+        //        };
+        //    }
+        //    else
+        //    { 
+        //        return BadRequest(new APIResult<string>()
+        //        {
+        //            Message = string.Join("; ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage)),
+        //            IsSucceed = false,
+        //            StatusCode = 400
+        //        });
+        //    }
+        //}
         /// <summary>
         /// Add new property ==> Type 1- resedintial 2- commercial ==> Status 1- Under construction 2- Ready to move and rent
         /// </summary>
@@ -108,36 +108,36 @@ namespace Lofty.Controllers
                 });
             }
         }
-        /// <summary>
-        /// Add new facility
-        /// </summary>
-        /// <param name="SVG"></param>
-        /// <returns></returns>
-        [HttpPost("api/Dashboard/Facility/Add")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
-        public async Task<IActionResult> AddNewFacilityAsync([FromForm, Required] FileViewModel SVG)
-        {
-            if (ModelState.IsValid)
-            {
-                await facilityManager.AddNewFacilityAsync(SVG);
-                return Ok(new APIResult<string>()
-                {
-                    IsSucceed = true,
-                    StatusCode = 200,
-                    Message = "Facility added"
-                });
-            }
-            else
-            {
-                return BadRequest(new APIResult<string>()
-                {
-                    Message = string.Join("; ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage)),
-                    IsSucceed = false,
-                    StatusCode = 400
-                });
-            }
-        }
+        ///// <summary>
+        ///// Add new facility
+        ///// </summary>
+        ///// <param name="SVG"></param>
+        ///// <returns></returns>
+        //[HttpPost("api/Dashboard/Facility/Add")]
+        //[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
+        //public async Task<IActionResult> AddNewFacilityAsync([FromForm, Required] FileViewModel SVG)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        await facilityManager.AddNewFacilityAsync(SVG);
+        //        return Ok(new APIResult<string>()
+        //        {
+        //            IsSucceed = true,
+        //            StatusCode = 200,
+        //            Message = "Facility added"
+        //        });
+        //    }
+        //    else
+        //    {
+        //        return BadRequest(new APIResult<string>()
+        //        {
+        //            Message = string.Join("; ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage)),
+        //            IsSucceed = false,
+        //            StatusCode = 400
+        //        });
+        //    }
+        //}
         /// <summary>
         /// Add property images
         /// </summary>
@@ -282,79 +282,96 @@ namespace Lofty.Controllers
                 });
             }
         }
-        ///// <summary>
-        ///// Add property facility
-        ///// </summary>
-        ///// <param name="PropertyId"></param>
-        ///// <param name="viewModel"></param>
-        ///// <returns></returns>
-        //[HttpPost("api/Dashboard/PropertyFacility/Add")]
-        //[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<PropertyFacilityViewModelForAdmin>))]
-        //[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<PropertyFacilityViewModelForAdmin>))]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
-        //public async Task<IActionResult> AddPropertyFacilityAsync([FromQuery, Required] AddPropertyFacilityViewModel viewModel, [FromQuery, Required] string PropertyId)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        APIResult<PropertyFacilityViewModelForAdmin> result = await propertyFacilityManager.AddFacilityToAPropertyAsync(viewModel, PropertyId);
-        //        return new JsonResult(result)
-        //        {
-        //            StatusCode = result.StatusCode
-        //        }; 
-        //    }
-        //    else
-        //    {
-        //        return BadRequest(new APIResult<string>()
-        //        {
-        //            Message = string.Join("; ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage)),
-        //            IsSucceed = false,
-        //            StatusCode = 400
-        //        });
-        //    }
-        //}
-        ///// <summary>
-        ///// Delete property facility
-        ///// </summary>
-        ///// <param name="PropertyFacilityId"></param>
-        ///// <returns></returns>
-        //[HttpDelete("api/Dashboard/PropertyFacility/Delete")]
-        //[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
-        //[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<string>))]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
-        //public async Task<IActionResult> DeletePropertyFacilityAsync([FromQuery, Required] int PropertyFacilityId)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        bool checkFacilityDeletedOrNot = await propertyFacilityManager.DeleteFacilityFromAPropertyAsync(PropertyFacilityId);
-        //        if (checkFacilityDeletedOrNot)
-        //        {
-        //            return Ok(new APIResult<string>()
-        //            {
-        //                IsSucceed = true,
-        //                StatusCode = 200,
-        //                Message = "Property facility deleted"
-        //            });
-        //        }
-        //        else
-        //        {
-        //            return NotFound(new APIResult<string>()
-        //            {
-        //                IsSucceed = false,
-        //                StatusCode = 404,
-        //                Message = "facility not found"
-        //            });
-        //        }
-        //    }
-        //    else
-        //    {
-        //        return BadRequest(new APIResult<string>()
-        //        {
-        //            Message = string.Join("; ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage)),
-        //            IsSucceed = false,
-        //            StatusCode = 400
-        //        });
-        //    }
-        //}
+        /// <summary>
+        /// Add property facility
+        /// </summary>
+        /// <param name="PropertyId"></param>
+        /// <param name="viewModel"></param>
+        /// <returns></returns>
+        [HttpPost("api/Dashboard/PropertyFacility/Add")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<PropertyFacilityViewModelForAdmin>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<PropertyFacilityViewModelForAdmin>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
+        public async Task<IActionResult> AddPropertyFacilityAsync([FromQuery, Required] AddPropertyFacilityViewModel viewModel, [FromQuery, Required] string PropertyId)
+        {
+            if (ModelState.IsValid)
+            {
+                APIResult<PropertyFacilityViewModelForAdmin> result = await propertyFacilityManager.AddFacilityToAPropertyAsync(viewModel, PropertyId);
+                return new JsonResult(result)
+                {
+                    StatusCode = result.StatusCode
+                };
+            }
+            else
+            {
+                return BadRequest(new APIResult<string>()
+                {
+                    Message = string.Join("; ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage)),
+                    IsSucceed = false,
+                    StatusCode = 400
+                });
+            }
+        }
+        /// <summary>
+        /// Delete property facility
+        /// </summary>
+        /// <param name="PropertyFacilityId"></param>
+        /// <returns></returns>
+        [HttpDelete("api/Dashboard/PropertyFacility/Delete")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<string>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
+        public async Task<IActionResult> DeletePropertyFacilityAsync([FromQuery, Required] int PropertyFacilityId)
+        {
+            if (ModelState.IsValid)
+            {
+                bool checkFacilityDeletedOrNot = await propertyFacilityManager.DeleteFacilityFromAPropertyAsync(PropertyFacilityId);
+                if (checkFacilityDeletedOrNot)
+                {
+                    return Ok(new APIResult<string>()
+                    {
+                        IsSucceed = true,
+                        StatusCode = 200,
+                        Message = "Property facility deleted"
+                    });
+                }
+                else
+                {
+                    return NotFound(new APIResult<string>()
+                    {
+                        IsSucceed = false,
+                        StatusCode = 404,
+                        Message = "facility not found"
+                    });
+                }
+            }
+            else
+            {
+                return BadRequest(new APIResult<string>()
+                {
+                    Message = string.Join("; ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage)),
+                    IsSucceed = false,
+                    StatusCode = 400
+                });
+            }
+        }
+        /// <summary>
+        /// Update property facilities index
+        /// </summary>
+        /// <param name="PropertyFacilitiesIds"></param>
+        /// <returns></returns>
+        [HttpPut("api/Dashboard/PropertyFacility/UpdateIndex")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<string>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
+        public async Task<IActionResult> UpdatePropertyFacilitiesNumberAsync([FromBody] List<int> PropertyFacilitiesIds)
+        {
+            APIResult<string> result = await propertyFacilityManager.UpdatePropertyFacilityNumberAsync(PropertyFacilitiesIds);
+            return new JsonResult(result)
+            {
+                StatusCode = result.StatusCode
+            };
+        }
         /// <summary>
         /// Get property details for admin by property id ==> Type 1- resedintial 2- commercial ==> Status 1- Under construction 2- Ready to move and rent
         /// </summary>

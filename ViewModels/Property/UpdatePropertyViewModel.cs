@@ -45,6 +45,5 @@ namespace ViewModels
         public double? DeliveryInstallment { get; set; }
         public Models.Type? Type { get; set; }
         public Status? Status { get; set; }
-        public List<AddPropertyFacilityViewModel> Facilities { get; set; }
     }
 }
