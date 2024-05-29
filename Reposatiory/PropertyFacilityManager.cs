@@ -108,7 +108,7 @@ namespace Reposatiory
                     propertyFacility.Number = number;
                 }
                 await unitOfWork.CommitAsync();
-                aPIResult.Message = "FAQ updated";
+                aPIResult.Message = "Facilities updated";
                 aPIResult.StatusCode = 200;
                 aPIResult.IsSucceed = true;
                 return aPIResult;

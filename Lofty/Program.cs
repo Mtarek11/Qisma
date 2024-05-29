@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Models;
@@ -97,7 +98,7 @@ namespace WebApis
             //{
             //    options.AddPolicy("CorsPolicy", builder =>
             //        builder
-            //            .WithOrigins("https://www.ph-sportsfest.com")
+            //            .WithOrigins("https://www.qisma.co")
             //            .AllowAnyHeader()
             //            .AllowAnyMethod()
             //            .AllowCredentials());

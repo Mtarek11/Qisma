@@ -12,7 +12,7 @@ namespace ViewModels
     {
         [Required]
         public string PropertyId { get; set; }
-        [Required]
+        [Required, AllowedImageExtensions]
         public IFormFileCollection Images {  get; set; }
     }
 }

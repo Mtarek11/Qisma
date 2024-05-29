@@ -166,12 +166,12 @@ namespace Reposatiory
                         }
                     }
                 }
-                using (var client = new SmtpClient("smtp.gmail.com", 587))
+                using (var client = new SmtpClient("smtp.zoho.com", 587))
                 {
                     client.UseDefaultCredentials = false;
-                    client.Credentials = new NetworkCredential("mohamedtarek70m@gmail.com", "ptuw vvlf rkue elgh");
+                    client.Credentials = new NetworkCredential("support@qisma.co", "uTMSfPd5cXNv");
                     client.EnableSsl = true;
-                    MailAddress from = new MailAddress("mohamedtarek70m@gmail.com");
+                    MailAddress from = new MailAddress("support@qisma.co");
                     MailAddress to = new MailAddress(user.Email);
                     string subject = $"Your Order Confirmation - {property.Title} Fractional Ownership";
                     string body =

@@ -15,7 +15,7 @@ namespace ViewModels
 
         public AllowedImageExtensionsAttribute()
         {
-            _allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".webp", ".svg", ".heic", ".heif", ".ico", ".pdf" };
+            _allowedExtensions = new[] { ".jpg", ".jpeg", ".pjpeg", ".aviv", ".png", ".gif", ".bmp", ".tiff", ".tif", ".jfif", ".bmp", ".webp", ".svg", ".svgz", ".ico", ".pdf", ".xbm", ".dib", ".pjp", ".apng" };
         }
 
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)

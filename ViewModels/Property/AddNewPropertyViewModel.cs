@@ -56,7 +56,7 @@ namespace ViewModels
         [Range(1, 3, ErrorMessage = "Invalid Status value.")]
         public Status Status {  get; set; }
         public List<AddPropertyFacilityViewModel> Facilities {  get; set; }
-        [Required]
+        [Required, AllowedImageExtensions]
         public IFormFileCollection PropertyImages {  get; set; }
     }
 }

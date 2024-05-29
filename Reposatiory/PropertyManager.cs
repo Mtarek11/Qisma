@@ -139,7 +139,7 @@ namespace Reposatiory
                        }).FirstOrDefaultAsync();
                     if (TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")).Year - propertyRentalYield.From.Year <= 1)
                     {
-                        aPIResult.Message = "Property rental yield can be updated on time a year";
+                        aPIResult.Message = "Property rental yield can be updated one time a year";
                         aPIResult.StatusCode = 409;
                         aPIResult.IsSucceed = false;
                         return aPIResult;

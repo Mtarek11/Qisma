@@ -10,7 +10,7 @@ namespace ViewModels
 {
     public class AddTeamMemberViewModel
     {
-        [Required]
+        [Required, AllowedImageExtensions]
         public IFormFile Image { get; set; }
         [Required]
         public string Name { get; set; }

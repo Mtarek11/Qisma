@@ -67,7 +67,7 @@ namespace Lofty.Controllers
             {
                 APIResult<string> result = await propertyManager.AddNewPropertyAsync(viewModel);
                 if (!result.IsSucceed)
-                { 
+                {
                     return new JsonResult(result)
                     {
                         StatusCode = result.StatusCode
@@ -153,9 +153,9 @@ namespace Lofty.Controllers
             {
                 APIResult<PropertyImageViewModelforAdmin> checkAddedOrNot = await propertyImageManager.AddPropertyImageAsync(viewModel);
                 return new JsonResult(checkAddedOrNot)
-                { 
+                {
                     StatusCode = checkAddedOrNot.StatusCode
-                }; 
+                };
             }
             else
             {
@@ -364,13 +364,25 @@ namespace Lofty.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResult<string>))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(APIResult<string>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResult<string>))]
-        public async Task<IActionResult> UpdatePropertyFacilitiesNumberAsync([FromBody] List<int> PropertyFacilitiesIds)
+        public async Task<IActionResult> UpdatePropertyFacilitiesNumberAsync([FromBody, Required] List<int> PropertyFacilitiesIds)
         {
-            APIResult<string> result = await propertyFacilityManager.UpdatePropertyFacilityNumberAsync(PropertyFacilitiesIds);
-            return new JsonResult(result)
+            if (ModelState.IsValid)
             {
-                StatusCode = result.StatusCode
-            };
+                APIResult<string> result = await propertyFacilityManager.UpdatePropertyFacilityNumberAsync(PropertyFacilitiesIds);
+                return new JsonResult(result)
+                {
+                    StatusCode = result.StatusCode
+                };
+            }
+            else
+            {
+                return BadRequest(new APIResult<string>()
+                {
+                    Message = string.Join("; ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage)),
+                    IsSucceed = false,
+                    StatusCode = 400
+                });
+            }
         }
         /// <summary>
         /// Get property details for admin by property id ==> Type 1- resedintial 2- commercial ==> Status 1- Under construction 2- Ready to move and rent
@@ -434,7 +446,7 @@ namespace Lofty.Controllers
                 return new JsonResult(result)
                 {
                     StatusCode = result.StatusCode
-                }; 
+                };
             }
             else
             {
@@ -462,7 +474,7 @@ namespace Lofty.Controllers
                 APIResult<string> result = await propertyManager.EnableAndDisablePropertyAsync(PropertyId);
                 return new JsonResult(result)
                 {
-                    StatusCode = result.StatusCode 
+                    StatusCode = result.StatusCode
                 };
             }
             else

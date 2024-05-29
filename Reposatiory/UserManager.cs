@@ -270,9 +270,12 @@ namespace Reposatiory
                         aPIResult.IsSucceed = true;
                         return aPIResult;
                     }
-                    catch (DbUpdateException)
+                    catch (DbUpdateException ex)
                     {
-                        aPIResult.Message = "Try again later";
+                        string message = ex.InnerException.Message;
+                        aPIResult.Message = message.Contains("Email") || message.Contains("Username") ?
+                        "Email already taken" : message.Contains("PhoneNumber") ? "Phone number already taken" :
+                        message.Contains("IdentityNumber") ? "Identity number already used befor" : message;
                         aPIResult.StatusCode = 400;
                         aPIResult.IsSucceed = false;
                         return aPIResult;

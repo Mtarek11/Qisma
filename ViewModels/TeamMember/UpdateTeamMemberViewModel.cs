@@ -12,6 +12,7 @@ namespace ViewModels
     {
         [Required]
         public int Id { get; set; }
+        [AllowedImageExtensions]
         public IFormFile Image { get; set; }
         public string Name { get; set; }
         public string JobTitle { get; set; }
