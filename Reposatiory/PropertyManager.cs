@@ -518,6 +518,7 @@ namespace Reposatiory
                 SharePrice = property.SharePrice,
                 TransactionFees = property.TransactionFees != null ? (property.TransactionFees * property.PropertyUnitPrices.Select(i => i.UnitPrice).FirstOrDefault()) / property.NumberOfShares : null,
                 AvailableShares = property.AvailableShares,
+                NumberOfShares = property.NumberOfShares,
                 MinNumberOfShares = property.MinOfShares,
                 DownPayment = property.DownPayment,
                 MonthlyInstallment = property.MonthlyInstallment,
@@ -604,7 +605,7 @@ namespace Reposatiory
                 aPIResult.Message = "Cannot insert less than min number of shares";
                 aPIResult.StatusCode = 400;
                 aPIResult.IsSucceed = false;
-                return aPIResult;
+                return aPIResult;   
             }
             OrderingPageViewModel orderingPage = new()
             {
@@ -614,11 +615,13 @@ namespace Reposatiory
                 ((property.TransactionFees * property.PropertyUnitPrices.Select(i => i.UnitPrice).FirstOrDefault()) / property.NumberOfShares) * numberOfshares : null,
                 AvailableShares = property.AvailableShares,
                 MinNumberOfShares = property.MinOfShares,
-                DownPayment = property.DownPayment / numberOfshares,
-                MonthlyInstallment = property.MonthlyInstallment / numberOfshares,
+                NumberOfShares = property.NumberOfShares,
+                DownPayment = (property.DownPayment / property.NumberOfShares) * numberOfshares, 
+                PurchaseShares = numberOfshares,
+                MonthlyInstallment = (property.MonthlyInstallment / property.NumberOfShares) *numberOfshares,
                 NumberOfYears = property.NumberOfYears,
-                MaintenaceInstallment = property.MaintenaceInstallment / numberOfshares,
-                DeliveryInstallment = property.DeliveryInstallment / numberOfshares,
+                MaintenaceInstallment = (property.MaintenaceInstallment / property.NumberOfShares) *numberOfshares,
+                DeliveryInstallment = (property.DeliveryInstallment / property.NumberOfShares) *numberOfshares,
             };
             UserInformationForOrderPreviewViewModel userInformation = new()
             {

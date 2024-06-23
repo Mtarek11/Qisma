@@ -92,17 +92,17 @@ namespace WebApis
                 };
             });
             appbuilder.Services.AddHttpClient();
-            appbuilder.Services.AddCors(option =>
-            option.AddPolicy("CorsPolicy", P => P.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
-            //appbuilder.Services.AddCors(options =>
-            //{
-            //    options.AddPolicy("CorsPolicy", builder =>
-            //        builder
-            //            .WithOrigins("https://www.qisma.co")
-            //            .AllowAnyHeader()
-            //            .AllowAnyMethod()
-            //            .AllowCredentials());
-            //});
+            //appbuilder.Services.AddCors(option =>
+            //option.AddPolicy("CorsPolicy", P => P.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+            appbuilder.Services.AddCors(options =>
+            {
+                options.AddPolicy("CorsPolicy", builder =>
+                    builder
+                        .WithOrigins("https://www.qisma.co")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials());
+            });
             appbuilder.Services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Lofty APIs", Version = "v1" });

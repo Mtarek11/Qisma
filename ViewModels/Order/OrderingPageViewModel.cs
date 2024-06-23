@@ -11,6 +11,7 @@ namespace ViewModels
         public string PropertyId {  get; set; }
         public int AvailableShares {  get; set; }
         public int MinNumberOfShares { get; set; }
+        public int NumberOfShares {  get; set; }
         public double SharePrice {  get; set; }
         public double? TransactionFees {  get; set; }
         public double? DownPayment {  get; set; }
@@ -18,5 +19,6 @@ namespace ViewModels
         public int? NumberOfYears { get; set; }
         public double? MaintenaceInstallment {  get; set; }
         public double? DeliveryInstallment {  get; set; }
+        public int? PurchaseShares { get; set; }
     }
 }

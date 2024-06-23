@@ -107,12 +107,13 @@ namespace Reposatiory
                     SharePrice = property.SharePrice,
                     NumberOfShares = numberOfShares,
                     OrderStatus = OrderStatus.Pending,
-                    TransactionFees = property.TransactionFees != null ? (property.TransactionFees / property.NumberOfShares) * numberOfShares : 0,
-                    DownPayment = property.DownPayment != null ? property.DownPayment / numberOfShares : 0,
-                    MonthlyInstallment = property.MonthlyInstallment != null ? property.MonthlyInstallment / numberOfShares : 0,
+                    TransactionFees = property.TransactionFees != null ? ((property.TransactionFees * property.PropertyUnitPrices.
+                    Select(i => i.UnitPrice).FirstOrDefault()) / property.NumberOfShares) * numberOfShares : 0,
+                    DownPayment = property.DownPayment != null ? (property.DownPayment / property.NumberOfShares) * numberOfShares : 0,
+                    MonthlyInstallment = property.MonthlyInstallment != null ? (property.MonthlyInstallment / property.NumberOfShares) * numberOfShares : 0,
                     NumberOfYears = property.NumberOfYears != null ? property.NumberOfYears : 0,
-                    MaintenaceInstallment = property.MaintenaceInstallment != null ? property.MaintenaceInstallment / numberOfShares : 0,
-                    DeliveryInstallment = property.DeliveryInstallment != null ? property.DeliveryInstallment / numberOfShares : 0,
+                    MaintenaceInstallment = property.MaintenaceInstallment != null ? (property.MaintenaceInstallment / property.NumberOfShares) * numberOfShares : 0,
+                    DeliveryInstallment = property.DeliveryInstallment != null ? (property.DeliveryInstallment / property.NumberOfShares) * numberOfShares : 0,
                     OrderDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")),
                 };
                 await AddAsync(order);
@@ -253,7 +254,7 @@ namespace Reposatiory
             {
                 Orders = await GetAll().OrderBy(i => i.Id).Select(OrderExtansions.ToOrderDetailsViewModelForAdminExpression())
                .Skip(itemsToSkip).Take(pageSize).ToListAsync();
-            }
+            } 
             else
             {
                 Orders = await GetAll().Where(i => i.OrderStatus == orderStatus).OrderBy(i => i.Id).Select(OrderExtansions.ToOrderDetailsViewModelForAdminExpression())
@@ -356,7 +357,7 @@ namespace Reposatiory
                .Skip(itemsToSkip).Take(pageSize).ToListAsync();
             }
             else
-            {
+            { 
                 Orders = await GetAll().OrderBy(i => i.Id).Where(i => i.OrderStatus == orderStatus && i.UserId == userId)
                .Select(OrderExtansions.ToOrderDetailsViewModelForUserExpression())
                .Skip(itemsToSkip).Take(pageSize).ToListAsync();

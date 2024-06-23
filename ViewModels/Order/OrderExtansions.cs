@@ -32,8 +32,8 @@ namespace ViewModels
                 Property = new PropertyViewModelInListView()
                 {
                     Address = i.Property.Title,
-                    ProjectedRentalYield = i.Property.PropertyRentalYields.Where(i => i.To == null).Select(i => i.RentalYield).FirstOrDefault(),
-                    ProjectedAnnualReturn = i.Property.PropertyRentalYields.Where(i => i.To == null).Select(i => i.RentalYield).FirstOrDefault() + i.Property.AnnualPriceAppreciation,
+                    ProjectedRentalYield = Math.Round(i.Property.PropertyRentalYields.Where(y => y.To == null).Select(y => y.RentalYield).FirstOrDefault() * 100, 2),
+                    ProjectedAnnualReturn = Math.Round((i.Property.PropertyRentalYields.Where(y => y.To == null).Select(y => y.RentalYield).FirstOrDefault() + i.Property.AnnualPriceAppreciation) * 100, 2),
                     City = i.Property.City.NameEn,
                     ImageUrl = i.Property.PropertyImages.Select(image => image.ImageUrl).FirstOrDefault(),
                     PropertyId = i.Property.Id,
@@ -86,8 +86,8 @@ namespace ViewModels
                 Property = new PropertyViewModelInListView()
                 {
                     Address = i.Property.Title,
-                    ProjectedRentalYield = i.Property.PropertyRentalYields.Where(i => i.To == null).Select(i => i.RentalYield).FirstOrDefault(),
-                    ProjectedAnnualReturn = i.Property.PropertyRentalYields.Where(i => i.To == null).Select(i => i.RentalYield).FirstOrDefault() + i.Property.AnnualPriceAppreciation,
+                    ProjectedRentalYield = Math.Round(i.Property.PropertyRentalYields.Where(y => y.To == null).Select(y => y.RentalYield).FirstOrDefault() * 100, 2),
+                    ProjectedAnnualReturn = Math.Round((i.Property.PropertyRentalYields.Where(y => y.To == null).Select(y => y.RentalYield).FirstOrDefault() + i.Property.AnnualPriceAppreciation) * 100, 2),
                     City = i.Property.City.NameEn,
                     ImageUrl = i.Property.PropertyImages.Select(image => image.ImageUrl).FirstOrDefault(),
                     PropertyId = i.Property.Id,
